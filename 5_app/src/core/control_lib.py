@@ -1,10 +1,43 @@
+'''
+################################################################################################################
+Author: Francisco Guzmán
+
+Content: Centralized control creation.
+Dependency: pymel.core, src.utility.transform_utils, src.utility.attribute_utils
+Maya Version tested: 2024
+
+How to:
+    - Use: 
+        - Import the module and create control instances using the provided classes (e.g., Circle, Square, Text).
+        
+            e.g 01: Manipulate control properties after creation.
+                my_control = Circle()
+                my_control.create(name="myCircleCtrl", normal=Vector.Y_POS)
+                my_control.set_color_index(ColorIndex.BLUE)
+
+            e.g 02: Manipulate control properties using method chaining.
+                my_control = Text(text="hand_ctrl").create(name="hand_ctrl", normal=Vector.Z_POS)
+                my_control.align(parent=some_transform_node).create_offset().lock_channels("s", "v").set_line_thick()
+        
+        - Cast controls from existing transform nodes giving the transform node to the control class constructor.
+
+            e.g 03: Cast existing transform node to control instance.
+                existing_transform = pm.PyNode("existing_ctrl")
+                my_control = Control(control=existing_transform)
+                my_control.set_color_rgb([1, 0, 0])  # Set color to red
+            
+        - Warning: the Control class is a base class and cannot create controls directly. Use one of its subclasses.
+
+    - Test: Use pymel.core to create transform nodes and test the functions interactively in Maya.
+################################################################################################################
+'''
+
+
 from enum import Enum
 from abc import ABC, abstractmethod
 from enum import Enum
 
 import pymel.core as pm
-import pymel.core.nodetypes as nt
-import pymel.core.datatypes as dt
 
 from src.utility.transform_utils import align_transform, create_offset
 from src.utility.attribute_utils import reset_attribute, lock_and_hide_attribute, Vector
@@ -32,7 +65,7 @@ class Control(ControlInterface):
     suffix = "_ctrl"
 
     def __init__(self, control= None):
-        self.curve = nt.Transform(control) if control and pm.objExists(control) else None
+        self.curve = pm.nt.Transform(control) if control and pm.objExists(control) else None
         self.offset = None
 
     def __str__(self):
@@ -310,14 +343,14 @@ class HalfCircle(Control):
 
 class Text(Control):
     def __init__(self, control=None, text="curve"):
-        self.curve = nt.Transform(control) if control and pm.objExists(control) else None
+        self.curve = pm.nt.Transform(control) if control and pm.objExists(control) else None
         self.offset = None
         self.text = text
 
     def create(self, name="curve", normal=[1,0,0]) -> 'Control':
 
         if not self.text: self.text = name
-        original = nt.Transform(pm.textCurves(f='Times-Roman', t= self.text, ch=False, name=name)[0])
+        original = pm.nt.Transform(pm.textCurves(f='Times-Roman', t= self.text, ch=False, name=name)[0])
         original.ry.set(90)
         pm.xform(original, cp=True, ws=True)
         loc = pm.spaceLocator()

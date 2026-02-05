@@ -1,3 +1,19 @@
+
+'''
+################################################################################################################
+Author: Francisco Guzmán
+
+Content: Basic utility functions for inspecting node types in Maya.
+Dependency: pymel.core
+Maya Version tested: 2024
+
+How to:
+    - Use: Import the module and call the functions as needed.
+    - Test: Use pymel.core to create nodes and test the functions interactively in Maya.
+################################################################################################################
+'''
+
+
 import pymel.core as pm
 
 # Type checking utility functions

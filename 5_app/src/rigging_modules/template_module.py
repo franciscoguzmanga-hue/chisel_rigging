@@ -1,3 +1,25 @@
+'''
+################################################################################################################
+Author: Francisco Guzmán
+
+Content: 
+    Collection of functions to create and manipulate templates to use as reference for easy manipulation in viewport.
+    This module is made to interact with any other third party auto-rig to simplify the process of placing joints and other rig elements.
+
+Dependency: pymel.core, src.utility.transform_utils, src.utility.constraint_utils
+Maya Version tested: 2024
+
+How to:
+    - Use: 
+        - Execute the create_templates function with a selection of transform nodes to create template locators.
+        - Use move_objet_to_locator and move_locator_to_object to transfer positions between original objects and their templates.
+        - Use constraint_to_midpoint to position mid-joint templates like elbows and knees.
+        - Use aim_to to orient templates like knees, elbows, and finger knuckles.
+    - Test: Use pymel.core to create transform nodes and test the functions interactively in Maya.
+################################################################################################################
+'''
+
+
 from enum import Enum
 
 import pymel.core as pm
@@ -126,7 +148,7 @@ def move_locator_to_object(locators: list[pm.nt.Transform]) -> list[pm.nt.Transf
 
 
 # Template adjustments functions
-def constraint_to_midpoint(locator_A: pm.nt.Transform, locator_B: pm.nt.Transform, locator_mid: pm.nt.Transform) -> pm.nt.PointConstraint:
+def constraint_to_midpoint(locator_A: pm.nt.Transform, locator_B: pm.nt.Transform, locator_mid: pm.nt.Transform, creates_offset=True) -> pm.nt.PointConstraint:
     """Using point constraint, moves the locator_mid to the exact middle position.
        Useful to find the correct position of knees and elbows.
 

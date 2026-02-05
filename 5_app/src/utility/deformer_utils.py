@@ -1,3 +1,21 @@
+'''
+################################################################################################################
+Author: Francisco Guzmán
+
+Content: Function collection to get and manipulate SkinCluster and Blendshapes.
+Dependency: pymel.core, src.utility.inspect_utils
+Maya Version tested: 2024
+
+How to:
+    - Use: Import the module and call the functions as needed.
+    - Extend: Add more deformer-related utility functions as needed.
+    - Test: Use pymel.core to get mesh and transform nodes and test the functions interactively in Maya.
+
+TODO: if this module gets too big, split skinCluster and blendshape functions into separate modules.
+################################################################################################################
+'''
+
+
 import pymel.core as pm
 
 from src.utility.inspect_utils import is_mesh

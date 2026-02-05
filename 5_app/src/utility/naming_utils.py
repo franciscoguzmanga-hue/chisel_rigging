@@ -1,3 +1,15 @@
+'''
+################################################################################################################
+Author: Francisco Guzman
+
+Content: Basic utility functions for naming conventions in Maya.
+Dependency: pymel.core
+Maya Version tested: 2024
+How to:
+    - Use: Import the module and call the functions as needed.
+################################################################################################################
+'''
+
 import pymel.core as pm
 
 # Naming utility functions

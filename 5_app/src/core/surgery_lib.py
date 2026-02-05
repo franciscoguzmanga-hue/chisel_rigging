@@ -1,3 +1,18 @@
+'''
+################################################################################################################
+Author: Francisco Guzmán
+
+Content: Tools to dissect and understand the internal structure of a rig to then make improvements or adjustments.
+Dependency: pymel.core, src.utility.deformer_utils, src.utility.inspect_utils, src.utility.constraint_utils
+Maya Version tested: 2024
+
+How to:
+    - Use: Import the module and call the functions as needed.
+    - Test: Use pymel.core to create transform nodes and test the functions interactively in Maya.
+################################################################################################################
+'''
+
+
 import pymel.core as pm
 
 from src.utility.deformer_utils import get_skinCluster_nodes, get_skinCluster_influences, get_all_deformer_nodes, get_blendShape_nodes, get_blendshape_targets

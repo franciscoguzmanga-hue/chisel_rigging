@@ -1,3 +1,18 @@
+'''
+################################################################################################################
+Author: Francisco Guzmán
+
+Content: Basic utility functions for transform nodes in Maya.
+Dependency: pymel.core
+Maya Version tested: 2024
+
+How to:
+    - Use: Import module and call functions with pymel transform nodes as arguments.
+    - Extend: Add more utility functions as needed.
+################################################################################################################
+'''
+
+
 import pymel.core as pm
 
 from src.utility.math_utils import get_distance

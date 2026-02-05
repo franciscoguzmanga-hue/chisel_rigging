@@ -1,3 +1,19 @@
+'''
+################################################################################################################
+Author: Francisco Guzmán
+
+Content: Rigging module to pin a transform to a surface or create a sliding follicle over a mesh or nurbs surface.
+Dependency: pymel.core, src.utility.inspect_utils
+Maya Version tested: 2024
+
+How to:
+    - Use: Execute the create_river function with the desired parameters.
+    - Extend: Add more rivet-related functions as needed.
+    - Test: Use pymel.core to create transform nodes and test the functions interactively in Maya.
+################################################################################################################
+'''
+
+
 import pymel.core as pm
 
 import src.utility.inspect_utils as inspect_utils

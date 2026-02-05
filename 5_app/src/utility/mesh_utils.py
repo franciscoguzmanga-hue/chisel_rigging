@@ -1,3 +1,19 @@
+'''
+################################################################################################################
+Author: Francisco Guzmán
+
+Content: Basic utility functions for mesh nodes in Maya.
+Dependency: pymel.core
+Maya Version tested: 2024
+
+How to:
+    - Use: Import into your script and call the functions as needed.
+    - Extend: Add more mesh-related utility functions as needed.
+    - Test: Use pymel.core to get mesh and transform nodes and test the functions interactively in Maya.
+################################################################################################################
+'''
+
+
 
 import pymel.core as pm
 

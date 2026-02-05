@@ -1,3 +1,18 @@
+'''
+################################################################################################################
+Author: Francisco Guzmán
+
+Content: Collection of constraint functions to apply and get information from constraint nodes.
+Dependency: pymel.core, src.utility.attribute_utils
+Maya Version tested: 2024
+
+How to:
+    - Use: Import the module and call the functions as needed.
+    - Test: Use pymel.core to create transform nodes and test the functions interactively in Maya.
+################################################################################################################
+'''
+
+
 from enum import Enum
 
 import pymel.core as pm

@@ -27,6 +27,7 @@ class ControlInterface(ABC):
     def create(self, name="control", normal=Vector.X_POS):
         """ abstraction of control creation. """
 
+
 class Control(ControlInterface):
     suffix = "_ctrl"
 
@@ -37,35 +38,79 @@ class Control(ControlInterface):
     def __str__(self):
         return self.curve.name()
 
-    def create(self, name="control", normal=Vector.X_POS) -> None:
-        """ abstraction of control creation. """
+    def create(self, name="control", normal=Vector.X_POS) -> 'Control':
+        """ abstraction of control creation. 
+        
+        Args:
+            name (str, optional): Name of the control to create. Defaults to "control".
+            normal (Vector, optional): Normal vector for the control shape orientation. Defaults to Vector.X_POS.
+        Returns:
+            Control: Self control instance.
+        """
         pass
 
     def orient_shape(self, vector = (0,0,0)) -> 'Control':
+        """Rotates the control shape according to given vector.
+
+        Args:
+            vector (tuple, optional): Rotation vector. Defaults to (0,0,0).
+
+        Returns:
+            Control: Self control instance.
+        """
         cvs = [shape.cv for shape in self.curve.getShapes()]
         pm.xform(cvs, ro=vector)
         return self
 
     def normal_shape(self, normal=(1,0,0)) -> 'Control':
+        """Change the normal or vector where the curve should aim to.
+
+        Args:
+            normal (tuple, optional): Rotation vector. Defaults to (1,0,0).
+
+        Returns:
+            Control: Self control instance.
+        """
         self.orient_shape([0, -90 * normal[2], 90 * normal[1]])
         return self
 
     def move_shape(self, vector=(0,0,0)) -> 'Control':
+        """Move control shape using the given vector.
+
+        Args:
+            vector (tuple, optional): Translation vector. Defaults to (0,0,0).
+
+        Returns:
+            Control: Self control instance.
+        """
         cvs = [shape.cv for shape in self.curve.getShapes()]
         pm.xform(cvs, t=vector, r=True)
         return self
 
     def scale_shape(self, scale_vector: pm.dt.Vector, pivot="ws") -> 'Control':
+        """Change the control shape size according to the given scale vector.
+
+        Args:
+            scale_vector (pm.dt.Vector): Scale vector.
+            pivot (str, optional): Pivot point for scaling. Defaults to "ws".
+
+        Returns:
+            Control: Self control instance.
+        """
         pivot_vector = pivot == "ws"
         cvs = [cv for shape in self.curve.getShapes() for cv in pm.ls(shape + ".cv[*]", fl=True)]
         pm.scale(cvs, scale_vector, r=True, p=self.curve.getTranslation(ws=pivot_vector))
         return self
 
-    def resize_shape(self, scale_vector: pm.dt.Vector, pivot="ws") -> 'Control':
-        self.scale_shape(scale_vector, pivot)
-        return self
-
     def align(self, parent: pm.nt.Transform) -> 'Control':
+        """Move control transform to the given transform's node location
+
+        Args:
+            parent (pm.nt.Transform): Transform node to align the control to.
+
+        Returns:
+            Control: Self control instance.
+        """
         if self.offset:
             align_transform(parent, self.offset)
         else:
@@ -73,16 +118,26 @@ class Control(ControlInterface):
         return self
 
     def create_offset(self, suffix="_offset") -> 'Control':
+        """Creates offset group over the control transform.
+
+        Args:
+            suffix (str, optional): Suffix for the offset group name. Defaults to "_offset".
+
+        Returns:
+            Control: Self control instance.
+        """
         self.offset = create_offset(self.curve, offset_name_suffix=suffix)
         return self
 
-    def replace_shape(self, *new_control: pm.nt.Transform) -> 'Control':
-        shape = self.curve.getShapes()
-        [ self.combine_shape(curve) for curve in new_control ]
-        pm.delete(shape)
-        return self
+    def combine_shape(self, new_curves: list[pm.nt.Transform]) -> 'Control':
+        """Combine new control shapes to the current control.
+        
+        Args:
+            new_curves (list [pm.nt.Transform]): List of new control transforms to use as shapes.
 
-    def combine_shape(self, *new_curves: pm.nt.Transform) -> 'Control':
+        Returns:
+            Control: Self control instance.
+        """
         for new_curve in new_curves:
             new_shapes = new_curve.getShapes()
 
@@ -99,15 +154,31 @@ class Control(ControlInterface):
                 pm.delete(new_curve)
 
         return self
-
-    def set_color_index(self, color: ColorIndex) -> 'Control':
-        #def color(self, rgbColor=None, indexColor=None):
-        """
-        Summary:
-            Change control color according to the side of the control, Left (L), Right(R), or else Center.
+    
+    def replace_shape(self, new_controls: list[pm.nt.Transform]) -> 'Control':
+        """Replace the current control shape with new control shapes.
 
         Args:
-            curv (list of str): List of curves to color.
+            new_controls (list[pm.nt.Transform]): List of new control transforms to use as shapes.
+
+        Returns:
+            Control: Self control instance.
+        """
+        shape = self.curve.getShapes()
+        [ self.combine_shape(curve) for curve in new_controls ]
+        pm.delete(shape)
+        return self
+
+    def set_color_index(self, color: ColorIndex) -> 'Control':
+        """
+        Summary:
+            Change control color according to the value in color index.
+
+        Args:
+            color (ColorIndex): Color index to apply to the control.
+
+        Returns:
+            Control: Self control instance.
         """
         shapes = self.curve.getShapes()
         for shape in shapes:
@@ -117,6 +188,16 @@ class Control(ControlInterface):
         return self
 
     def set_color_rgb(self, rgb_color:list) -> 'Control':
+        """
+        Summary:
+            Change control color according to the given RGB color.
+
+        Args:
+            rgb_color (list): RGB color to apply to the control.
+
+        Returns:
+            Control: Self control instance.
+        """
         shapes = self.curve.getShapes()
         for shape in shapes:
             shape.overrideEnabled.set(1)
@@ -124,22 +205,26 @@ class Control(ControlInterface):
             shape.overrideColorRGB.set(rgb_color)
         return self
 
-    def reset(self):
-        """
-            Summary:
-                Reset all animatable attributes of control.
+    def reset(self) -> Control:
+        """Restore default values on every keyable attribute on control.
+
+        Returns:
+            Control: Self control instance.
         """
         attributes = self.curve.listAttr(keyable=True)
         [reset_attribute(attr) for attr in attributes]
         return self
 
-    def lock_channels(self, *channels):
+    def lock_channels(self, *channels: str) -> 'Control':
         """
         Summary:
             Locks & Hide channels on current control.
 
         Args:
-            channels (list of str): Name of channels to lock on control.
+            channels (list[str]): Name of channels to lock on control.
+        
+        Returns:
+            Control: Self control instance.
         """
         for attr in channels:
             if not self.curve.hasAttr(attr): continue
@@ -148,12 +233,22 @@ class Control(ControlInterface):
         return self
 
     def set_line_thick(self) -> 'Control':
+        """Makes control thick.
+
+        Returns:
+            Control: Self control instance.
+        """
         shapes = self.curve.getShapes()
         for shape in shapes:
             shape.lineWidth.set(2)
         return self
     
     def set_line_thin(self) -> 'Control':
+        """Makes control Thin.
+
+        Returns:
+            Control: Self control instance.
+        """
         shapes = self.curve.getShapes()
         for shape in shapes:
             shape.lineWidth.set(1)
@@ -161,14 +256,14 @@ class Control(ControlInterface):
     
 
 class Circle(Control):
-    def create(self, name= "curve", normal= [1,0,0]):
+    def create(self, name= "curve", normal= [1,0,0]) -> 'Control':
         self.curve = pm.circle(nr=(1, 0, 0), ch=False, n=name)[0]
         self.normal_shape(normal)
         return self
 
 
 class Square(Control):
-    def create(self, name= "curve", normal=[1,0,0]):
+    def create(self, name= "curve", normal=[1,0,0]) -> 'Control':
         self.curve = pm.circle(sections=4, normal=[1, 0, 0], d=1, n=name)[0]
         self.orient_shape([45, 0, 0])
         self.normal_shape(normal)
@@ -179,7 +274,7 @@ class Cross(Control):
     points = [(1, 0, 2), (1, 0, 1), (2, 0, 1), (2, 0, -1), (1, 0, -1), (1, 0, -2), (-1, 0, -2),
               (-1, 0, -1), (-2, 0, -1), (-2, 0, 1), (-1, 0, 1), (-1, 0, 2), (1, 0, 2)]
 
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0]) -> 'Control':
         self.curve = pm.curve(d=1, p= self.points, n=name)
         self.orient_shape([0, 0, 90])
         self.scale_shape([.45, .45, .45])
@@ -190,7 +285,7 @@ class Cross(Control):
 class Arrow(Control):
     points = [(0, -2, -1), (0, 0, -1), (0, 0, -2), (0, 2, 0), (0, 0, 2), (0, 0, 1), (0, -2, 1), (0, -2, -1)]
 
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0]) -> 'Control':
         self.curve = pm.curve(d=1, p=self.points, n=name)
         self.scale_shape([.45, .45, .45])
         self.normal_shape(normal)
@@ -199,14 +294,14 @@ class Arrow(Control):
 
 class Triangle(Control):
 
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0]) -> 'Control':
         self.curve = pm.circle(sections=3, normal=[1,0,0], d=1, n=name)[0]
         self.normal_shape(normal)
         return self
 
 
 class HalfCircle(Control):
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0])-> 'Control':
         self.curve = pm.circle(normal=[1, 0, 0], n=name)[0]
         pm.xform(self.curve.cv[3:7], scale=[1, 0, 1])
         self.normal_shape(normal)
@@ -219,7 +314,7 @@ class Text(Control):
         self.offset = None
         self.text = text
 
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0]) -> 'Control':
 
         if not self.text: self.text = name
         original = nt.Transform(pm.textCurves(f='Times-Roman', t= self.text, ch=False, name=name)[0])
@@ -244,7 +339,7 @@ class Pin(Control):
     points = [[0.0, -1.1102230246251565e-15, 0.0], [0.0, 1.199999999999999, 0.0], [0.0, 1.5999999999999992, -0.4],
               [0.0, 1.9999999999999991, 0.0], [0.0, 1.5999999999999992, 0.4], [0.0, 1.199999999999999, 0.0]]
 
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0])-> 'Control':
         self.curve = pm.curve(d=1, p=self.points, n=name)
         self.normal_shape(normal)
         return self
@@ -257,14 +352,14 @@ class PinDouble(Control):
               [0.0, 1.489505494186085, -0.4965018313953617], [0.0, 0.9930036627907234, 0.0],
               [0.0, 1.489505494186085, 0.4965018313953617], [0.0, 1.9860073255814468, 0.0]]
 
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0]) -> 'Control':
         self.curve = pm.curve(d=1, p=self.points, n=name)
         self.normal_shape(normal)
         return self
 
 
 class Sphere(Control):
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0]) -> 'Control':
         circulo1 = pm.circle(nr=(1, 0, 0), ch=False, n=name)[0]
         circulo2 = pm.circle(nr=(0, 1, 0), ch=False, n=name)[0]
         circulo3 = pm.circle(nr=(0, 0, 1), ch=False, n=name)[0]
@@ -279,7 +374,7 @@ class Sphere(Control):
 
 
 class Button(Control):
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0]) -> 'Control':
         c1 = HalfCircle().create(name)
         c2 = HalfCircle().create(name)
 
@@ -320,7 +415,7 @@ class Orient(Control):
               [0.0959835, 0.327886, -0.751175], [0.0959835, 0.327886, -0.751175],
               [0.0959835, 0.500458, -0.500783], [0.0959835, 0.604001, -0.0987656]]
 
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0]) -> 'Control':
         self.curve = pm.curve(d=1, p=self.points, n=name)
         self.orient_shape([0, 0, -90])
         self.normal_shape(normal)
@@ -333,7 +428,7 @@ class Cube(Control):
               (-0.5, -0.5, 0.5), (0.5, -0.5, 0.5), (0.5, 0.5, 0.5), (0.5, 0.5, -0.5), (0.5, -0.5, -0.5),
               (-0.5, -0.5, -0.5), (-0.5, 0.5, -0.5)]
 
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0]) -> 'Control':
         self.curve = pm.curve(d=1, p=self.points, n=name)
         self.scale_shape([1.4, 1.4, 1.4])
         self.normal_shape(normal)
@@ -341,7 +436,7 @@ class Cube(Control):
 
 
 class CubeFK(Control):
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0])-> 'Control':
         cube = Cube().create(name)
         cube.move_shape([.7,0,0])
         self.curve = cube.curve
@@ -414,7 +509,7 @@ class Gear(Control):
               [0.0435272647635, -1.06039857864, -0.20293177664400006],
               [0.00272859287881, -0.9807839393619999, -0.19508992135700004]]
 
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0]) -> 'Control':
         self.curve = pm.curve(d=1, p=self.points, n=name)
         self.scale_shape([.9, .9, .9])
         self.normal_shape(normal)
@@ -422,7 +517,7 @@ class Gear(Control):
 
 
 class Ring(Control):
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0])-> 'Control':
         c1 = Circle().create(name)
         c2 = Circle().create(name)
 
@@ -443,7 +538,7 @@ class Ring(Control):
 
 
 class RingSphere(Control):
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0]) -> 'Control':
         n = 4
         angle = 360.0 / n
         # coord = [ (0,1,0), (0,-1,0), (0,0,-1), (0,0,1) ]
@@ -464,7 +559,7 @@ class RingSphere(Control):
 
 
 class Pyramid(Control):
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0]) -> 'Control':
         control = Triangle().create(name)
         t2 = Triangle().create(name)
         sq = Square().create(name)
@@ -480,12 +575,12 @@ class Pyramid(Control):
         control.scale_shape([.65, .65, .65])
         control.orient_shape([0, 0, -90])
         self.curve = control.curve
-        self.normal_shape()
+        self.normal_shape(normal)
         return self
 
 
 class Slider(Control):
-    def create(self, name="curve", normal= [1,0,0], limits=[0, 1]):
+    def create(self, name="curve", normal= [1,0,0], limits=[0, 1])-> 'Control':
         offset = pm.curve(p=[(0, limits[0], 0), (0, limits[1], 0)], d=1, n= name)
         slider = pm.circle(normal=[0, 0, 1], d=1, s=4, n=f"{name}_slider")[0]
         pm.xform(slider.cv, ro=[90, 45, 90])
@@ -506,7 +601,7 @@ class Slider(Control):
 
 
 class Osipa(Control):
-    def create(self, name="curve", normal=[1,0,0]):
+    def create(self, name="curve", normal=[1,0,0]) -> 'Control':
         offset = Square().create(name)
         control = Square().create(f"{name}_slider")
 

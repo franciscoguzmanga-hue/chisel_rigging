@@ -136,3 +136,4 @@ def create_rivet(surface: pm.PyNode, transform: pm.nt.Transform, is_orbital=Fals
         pm.delete(closest)
 
     return follicle
+

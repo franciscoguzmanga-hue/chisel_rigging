@@ -73,15 +73,18 @@ def filter_out_locators(selection: list) -> list:
 
 
 # Hierarchy functions
-def get_leaf_nodes(selection: list) -> list:
+def get_leaf_nodes(selection: list) -> list[pm.nt.Transform]:
+    """Get every node without children from the given selection."""
     leaf_nodes = [node for node in selection if not node.getChildren(type= pm.nt.Transform)]
     return leaf_nodes
 
-def get_no_leaf_nodes(selection: list) -> list:
+def get_no_leaf_nodes(selection: list) -> list[pm.nt.Transform]:
+    """Get every node with children from the given selection."""
     no_leaf_nodes = [node for node in selection if node.getChildren(type= pm.nt.Transform)]
     return no_leaf_nodes
 
-def get_top_level_nodes(nodes: list) -> list:
+def get_top_level_nodes(nodes: list) -> list[pm.nt.Transform]:
+    """Get every top level node from the given list (nodes without parents in the list)."""
     top_level_nodes = []
     node_set = set(nodes)
     for node in nodes:
@@ -90,10 +93,4 @@ def get_top_level_nodes(nodes: list) -> list:
             top_level_nodes.append(node)
     return top_level_nodes
 
-
-# Naming utility functions
-def find_repeated_names() -> list:
-    nodes = pm.ls("*")
-    repeated_names = [node.shortName() for node in nodes if "|" in node.shortName()]
-    return set(repeated_names)
 

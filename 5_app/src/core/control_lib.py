@@ -393,10 +393,10 @@ class PinDouble(Control):
 
 class Sphere(Control):
     def create(self, name="curve", normal=[1,0,0]) -> 'Control':
-        circulo1 = pm.circle(nr=(1, 0, 0), ch=False, n=name)[0]
-        circulo2 = pm.circle(nr=(0, 1, 0), ch=False, n=name)[0]
-        circulo3 = pm.circle(nr=(0, 0, 1), ch=False, n=name)[0]
-        circles = [circulo1, circulo2, circulo3]
+        circle_shape_01 = pm.circle(nr=(1, 0, 0), ch=False, n=name)[0]
+        circle_shape_02 = pm.circle(nr=(0, 1, 0), ch=False, n=name)[0]
+        circle_shape_03 = pm.circle(nr=(0, 0, 1), ch=False, n=name)[0]
+        circles = [circle_shape_01, circle_shape_01, circulo3]
 
         shapes = [circle.getShape() for circle in circles]
         self.curve = pm.group(em=True, n=name)
@@ -408,13 +408,13 @@ class Sphere(Control):
 
 class Button(Control):
     def create(self, name="curve", normal=[1,0,0]) -> 'Control':
-        c1 = HalfCircle().create(name)
-        c2 = HalfCircle().create(name)
+        curve_01 = HalfCircle().create(name)
+        curve_02 = HalfCircle().create(name)
 
-        c2.orient_shape([0, 90, 0])
-        c1.combineShape(c2.curve)
-        c1.orient_shape([0, 0, -90])
-        self.curve = c1.curve
+        curve_02.orient_shape([0, 90, 0])
+        curve_01.combineShape(curve_02.curve)
+        curve_01.orient_shape([0, 0, -90])
+        self.curve = curve_01.curve
         self.normal_shape(normal)
         return self
 
@@ -551,33 +551,32 @@ class Gear(Control):
 
 class Ring(Control):
     def create(self, name="curve", normal=[1,0,0])-> 'Control':
-        c1 = Circle().create(name)
-        c2 = Circle().create(name)
+        circle_01 = Circle().create(name)
+        circle_02 = Circle().create(name)
 
-        c1.move_shape([ 1, 0, 0])
-        c2.move_shape([-1, 0, 0])
+        circle_01.move_shape([ 1, 0, 0])
+        circle_02.move_shape([-1, 0, 0])
+        circle_03 = pm.curve(p=[(1, 0, 1), (-1, 0, 1)], d=1)
+        circle_04 = pm.curve(p=[(1, 0, -1), (-1, 0, -1)], d=1)
+        circle_05 = pm.curve(p=[(1, 1, 0), (-1, 1, 0)], d=1)
+        circle_06 = pm.curve(p=[(1, -1, 0), (-1, -1, 0)], d=1)
 
-        c3 = pm.curve(p=[(1, 0, 1), (-1, 0, 1)], d=1)
-        c4 = pm.curve(p=[(1, 0, -1), (-1, 0, -1)], d=1)
-        c5 = pm.curve(p=[(1, 1, 0), (-1, 1, 0)], d=1)
-        c6 = pm.curve(p=[(1, -1, 0), (-1, -1, 0)], d=1)
+        [circle_01.combineShape(curve) for curve in [circle_03, circle_04, circle_05, circle_06, circle_02.curve]]
+        circle_01.scale_shape([.2, 1, 1])
 
-        [c1.combineShape(curve) for curve in [c3, c4, c5, c6, c2.curve]]
-        c1.scale_shape([.2, 1, 1])
-
-        self.curve = c1.curve
+        self.curve = circle_01.curve
         self.normal_shape(normal)
         return self
 
 
 class RingSphere(Control):
     def create(self, name="curve", normal=[1,0,0]) -> 'Control':
-        n = 4
-        angle = 360.0 / n
+        number_of_spheres = 4
+        angle = 360.0 / number_of_spheres
         # coord = [ (0,1,0), (0,-1,0), (0,0,-1), (0,0,1) ]
         control = pm.group(em=True)
 
-        for i in range(n):
+        for i in range(number_of_spheres):
             sphere = Sphere().create(name)
             sphere.scale_shape([.2, .2, .2]).move_shape([0, 0, 1])
             cvs = [shape.cv for shape in sphere.curve.getShapes()]
@@ -594,16 +593,16 @@ class RingSphere(Control):
 class Pyramid(Control):
     def create(self, name="curve", normal=[1,0,0]) -> 'Control':
         control = Triangle().create(name)
-        t2 = Triangle().create(name)
-        sq = Square().create(name)
+        triangle_02 = Triangle().create(name)
+        square = Square().create(name)
 
-        t2.orient_shape([0, 90, 0])
-        sq.orient_shape([45, 0, 90])
-        sq.scale_shape([0.865, 0.865, 0.865])
-        sq.move_shape([0, -0.498, 0])
+        triangle_02.orient_shape([0, 90, 0])
+        square.orient_shape([45, 0, 90])
+        square.scale_shape([0.865, 0.865, 0.865])
+        square.move_shape([0, -0.498, 0])
 
-        control.combineShape(t2.curve)
-        control.combineShape(sq.curve)
+        control.combineShape(triangle_02.curve)
+        control.combineShape(square.curve)
         control.move_shape([0, .5, 0])
         control.scale_shape([.65, .65, .65])
         control.orient_shape([0, 0, -90])

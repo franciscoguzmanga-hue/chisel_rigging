@@ -295,6 +295,26 @@ class Circle(Control):
         return self
 
 
+class Semicircle(Circle):
+    def __init__(self, name: str, normal=[1, 0, 0], reference=None, scale=[1, 1, 1], is_constrained=False):
+        super().__init__(name, normal, reference, scale, is_constrained)
+
+    def create(self):
+        super().create()
+
+        cvs = pm.ls(self.transform + ".cv[*]", fl=True)
+
+        # self.rotate([-90,0,0])
+        if self.normal == pm.dt.Vector(1, 0, 0):
+            pm.xform(cvs[4:7], s=[1, 0, 1])
+        elif self.normal == pm.dt.Vector(0, 1, 0):
+            # self.rotate([0,90,0])
+            pm.xform(cvs[4:7], s=[1, 1, 0])
+        elif self.normal == pm.dt.Vector(0, 0, 1):
+            self.rotate([0, 0, 90])
+            pm.xform(cvs[2:5], s=[1, 0, 1])
+
+
 class Square(Control):
     def create(self, name= "curve", normal=[1,0,0]) -> 'Control':
         self.curve = pm.circle(sections=4, normal=[1, 0, 0], d=1, n=name)[0]

@@ -19,6 +19,19 @@ from src.utility.math_utils import get_distance
 
 
 # Transform Manipulation Functions
+def create_transform_node(name:str, parent: pm.nt.Transform =None) -> pm.nt.Transform:
+    """Create a group transform node with the given name or cast it if it already exists.
+    Args:
+        name (str): Name of the transform node.
+        parent(pm.nt.Transform, optional): Parent transform node. Defaults is None.
+    Returns:
+        pm.nt.Transform: Created transform node.
+    """
+    group_node = pm.nt.Transform(name) if pm.objExists(name) else pm.nt.Transform(n=name)
+    if parent and pm.objExists(parent):
+        pm.parent(group_node, parent)
+    return group_node
+
 def flip_transform(transform_node: pm.nt.Transform, axis="x", replace_str=("_L", "_R"), use_scale=True) -> None:
     """Flip a transform node along the specified axis.
     Args:
@@ -147,8 +160,10 @@ def create_offset(transform_node: pm.nt.Transform, offset_name_suffix="_offset")
     Returns:
         pm.nt.Transform: The created offset transform node.
     """
-    offset_transform = pm.nt.Transform(n=f"{transform_node.name()}{offset_name_suffix}")
+    name = f"{transform_node.name()}{offset_name_suffix}"
+    offset_transform = pm.nt.Transform(n=name)
     offset_transform.setMatrix(transform_node.getMatrix(worldSpace=True), worldSpace=True)
+
     pm.parent(offset_transform, transform_node.getParent())
     pm.parent(transform_node, offset_transform)
     return offset_transform
@@ -229,6 +244,17 @@ def has_children(transform_node: pm.nt.Transform) -> bool:
     children = transform_node.getChildren(type=pm.nt.Transform)
     return len(children) > 0
 
+def create_hierarchy_from_dict(structure: dict, parent: pm.nt.Transform=None) -> None:
+    """Creates a hierarchy from a Dictionary's keys.
+
+    Args:
+        structure (dict): Dictionary with the hierarchy structure. Keys will be the name of groups.
+        parent (pm.nt.Transform, optional): Parent transform node. Defaults to None.
+    """
+    for key in structure.keys():
+        transform_node = create_transform_node(key, parent)
+        if structure[key]:
+            build_structure(structure[key], transform_node)
 
 # Display Functions
 def set_display_normal(transform_node: pm.nt.Transform) -> None:

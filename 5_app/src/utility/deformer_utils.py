@@ -27,36 +27,37 @@ def get_all_deformer_nodes(transform_node: pm.nt.Transform) -> list:
 
 
 # SkinCluster Utility Functions
-def getSkinCluster(*selection):
-    cluster = {}
-    for obj in selection:
-        node = pm.ls(pm.listHistory(obj), type="skinCluster")
-        if node: cluster[obj] = node[0]
-    return cluster
+def get_skinCluster_nodes(mesh: pm.nt.Transform) -> list[pm]:
+    """Get skin cluster nodes from surface or geometry or any node with a skin cluster in its history.
 
-def getSkinnedJoints(*selection):
-    joints = []
-    for obj in selection:
-        sknCluster = getSkinCluster(obj)
-        if not sknCluster: continue
-        influences = pm.skinCluster(sknCluster[obj], q=True, inf=True)
-        [ joints.append(jnt) for jnt in influences if jnt not in joints ]
-    return joints
-
-def renameSkincluster(*selection):
-    """
     Args:
-        *selection: list of skinned meshes.
-    Returns: list of given meshes.
+        mesh (pm.nt.Transform): Mesh to get the skin cluster nodes from.
+    Returns:
+        list[pm.nt.SkinCluster]: List of skin cluster nodes.
     """
-    for obj in selection:
-        if isinstance(obj, nt.SkinCluster):
-            skn = obj
-            geometry = skn.getGeometry()[0].getParent().name()
-        else:
-            skn = getSkinCluster(obj)[obj]
-            geometry = obj.name()
-        pm.rename(skn, "{}_skinCluster".format(geometry))
+    skin_clusters = pm.listConnections(mesh, type="skinCluster")
+    return skin_clusters or []
+
+def get_skinCluster_influences(skin_cluster_node: pm.nt.SkinCluster) -> list[pm.nt.Transform]:
+    """Get joints that are binded into the skin cluster.
+
+    Args:
+        skin_cluster_node (pm.nt.SkinCluster): Skin cluster node to get influences from.
+
+    Returns:
+        list[pm.nt.Transform]: List of influence joints.
+    """
+    influences = skin_cluster_node.getInfluence()
+    return influences or []
+
+def rename_skinCluster(skin_cluster_node: pm.nt.SkinCluster) -> None:
+    """Rename the skin cluster node to match the geometry name.
+    Args:
+        skin_cluster_node (pm.nt.SkinCluster): Skin cluster node to rename.
+    """
+    geometry = skin_cluster_node.getGeometry()[0]
+    new_name = f"{geometry.name()}_skinCluster"
+    pm.rename(skin_cluster_node, new_name)
 
 def bind_skinCluster(joints: list[pm.nt.Transform],
                      geometry: pm.nt.Mesh) -> pm.nt.SkinCluster:
@@ -113,33 +114,25 @@ def copy_skin_weights(source_mesh: pm.nt.Mesh, target_mesh: pm.nt.Mesh, is_add_w
     pm.copySkinWeights(ss=source_mesh, ds=target_mesh, noMirror=True, surfaceAssociation='closestPoint', influenceAssociation='oneToOne')
 
 # BlendShape Utility Functions
-def getBlendshape(*selection):
-    BS = {}
-    for obj in selection:
-        node = pm.ls(pm.listHistory(obj), type="blendShape")
-        if node: BS[obj] = node[0]
-    return BS
-
-def getBlendshapeTargets(*selection):
+def get_blendShape_nodes(transform: pm.nt.Transform) -> list[pm.nt.BlendShape]:
+    """Get blendshape nodes from surface or geometry or any node with a blendshape in its history.
+    Args:        
+        transform (pm.nt.Transform): Node to get the blendshape nodes from.
+    Returns:        
+        list[pm.nt.BlendShape]: List of blendshape nodes.
     """
-        Args:
-            *selection: list of basemeshes.
+    blend_shapes = pm.listConnections(transform, type="blendShape")
+    return blend_shapes or []
+
+def get_blendshape_targets(blend_shape_node: pm.nt.BlendShape) -> list[pm.nt.Transform]:
+    """Get blendshape target nodes from a blendshape node.
+    Args:        
+        blend_shape_node (pm.nt.BlendShape): Blendshape node to get the target nodes from.
+    Returns:        
+        list[pm.nt.Transform]: List of blendshape target nodes.
     """
-    targets = []
-    for obj in selection:
-        bs_node = getBlendshape(obj)[obj]
-        weight_list = list(bs_node.weight)
-
-        for target in bs_node.weight:
-            try:
-                index = weight_list.index(target)
-
-                str = "{}.inputTarget[0].inputTargetGroup[{}].inputTargetItem".format(bs_node, index)
-                target_mesh = pm.listConnections(str)
-                targets.append(target_mesh)
-            except Exception as ex:
-                message(ex, "info")
-    return targets
+    target_aliases = blend_shape_node.getTargetAliasList()
+    return target_aliases or []
 
 def add_blendshape_target(blend_shape_node: pm.nt.BlendShape, target_mesh: pm.nt.Mesh, target_name: str) -> None:
     """Add a blendshape target to a blendshape node.
@@ -159,25 +152,16 @@ def rename_blendShape_node(blend_shape_node: pm.nt.BlendShape) -> None:
     new_name = f"{geometry.name()}_blendShape"
     pm.rename(blend_shape_node, new_name)
 
-def renameTargets(*selection):
-    """
+def rename_blendshape_target(blend_shape_node: pm.nt.BlendShape, old_name: str, new_name: str) -> None:
+    """Rename a blendshape target in a blendshape node.
     Args:
-        *selection: list of basemeshes.
+        blend_shape_node (pm.nt.BlendShape): Blendshape node to rename the target in.
+        old_name (str): Old name of the blendshape target.
+        new_name (str): New name of the blendshape target.
     """
-    for obj in selection:
-        bs_node = getBlendshape(obj)[obj]
-        weight_list = list(bs_node.weight)
-
-        for target in bs_node.weight:
-            try:
-                index = weight_list.index(target)
-
-                str = "{}.inputTarget[0].inputTargetGroup[{}].inputTargetItem".format(bs_node, index)
-                target_mesh = pm.listConnections(str)
-                if target_mesh:
-                    pm.aliasAttr(target_mesh[0], target)
-            except Exception as ex:
-                message(ex, "info")
+    index = blend_shape_node.getTargetIndex(old_name)
+    if index != -1:
+        blend_shape_node.setTargetAlias(index, new_name)
 
 def extract_blendshape_delta(deformed_mesh: pm.nt.Transform, corrected_mesh: pm.nt.Transform, delete_delta=False) -> pm.nt.Transform:
     """
@@ -201,4 +185,3 @@ def extract_blendshape_delta(deformed_mesh: pm.nt.Transform, corrected_mesh: pm.
         return None
     
     return delta_mesh
-

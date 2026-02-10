@@ -15,7 +15,8 @@ How to:
         - Use move_objet_to_locator and move_locator_to_object to transfer positions between original objects and their templates.
         - Use constraint_to_midpoint to position mid-joint templates like elbows and knees.
         - Use aim_to to orient templates like knees, elbows, and finger knuckles.
-    - Test: Use pymel.core to create transform nodes and test the functions interactively in Maya.
+    - Test: Use the test in src.test.rigging_modules.template_test to see an example of how to use the module and test it interactively in Maya.
+    
 ################################################################################################################
 '''
 
@@ -24,6 +25,7 @@ from enum import Enum
 
 import pymel.core as pm
 
+from src.core.control_lib import Sphere
 from src.utility.transform_utils import align_transform, create_offset
 from src.utility.constraint_utils import pointConstraint_many_to_one, aimConstraint_many_to_one, Vector, WorldUpType
 
@@ -57,13 +59,12 @@ def create_template_locator(name: str) -> pm.nt.Transform:
     locator = pm.spaceLocator(name= name)
     locator.getShape().localScale.set(.2, .2, .2)
 
-    normals = [(1,0,0),
-               (0,1,0)
-               (0,0,1)]
-    for normal in normals:
-        circle = pm.circle(normal=normal)
-        pm.parent(circle.getShapes(), locator, s=True, r=True)
-        pm.delete(circle)
+    sphere = Sphere()
+    sphere.create("temp_name")
+    shapes = sphere.transform.getShapes()
+    pm.parent(shapes, locator, s=True, r=True)
+    [shape.rename(f"{name}Shape") for shape in shapes]
+    pm.delete(sphere.transform)
 
     return locator
 
@@ -84,8 +85,9 @@ def create_templates(selection: list[pm.nt.Transform]) -> list[pm.nt.Transform]:
         if not locator.hasAttr(ATTR_ID):
             pm.addAttr(locator, ln=ATTR_ID, dt="string", keyable=True)
 
-        locator.attr(ATTR_ID).set(obj.name())
-        pm.delete(pm.parentConstraint(obj, locator))
+        locator.attr(ATTR_ID).set(obj.name(long=True))
+        move_locator_to_object([locator])
+        #pm.delete(pm.parentConstraint(obj, locator))
 
         pm.parent(locator, template_group)
         locators.append(locator)
@@ -119,6 +121,7 @@ def move_objet_to_locator(locators: list[pm.nt.Transform]) -> list[pm.nt.Transfo
         list[pm.nt.Transform]: List of original transform nodes moved to the locators' positions.
     """
     original_objects = []
+    locators = sorted(locators, key=lambda loc: loc.attr(ATTR_ID).get())
     for template in locators:
         original_object = get_original_transform(template)
         if not original_object: continue
@@ -161,7 +164,7 @@ def constraint_to_midpoint(locator_A: pm.nt.Transform, locator_B: pm.nt.Transfor
         pm.nt.PointConstraint: The created point constraint node.
     """
     locator_mid_offset = create_offset(locator_mid)
-    point_constraint = pointConstraint_many_to_one(locator_A, locator_B, locator_mid_offset, maintain_offset=False)
+    point_constraint = pointConstraint_many_to_one(locator_A, locator_B, slave=locator_mid_offset, maintain_offset=False)
     return point_constraint
 
 def aim_to(master_locator: pm.nt.Transform, slave_locator: pm.nt.Transform) -> pm.nt.AimConstraint:

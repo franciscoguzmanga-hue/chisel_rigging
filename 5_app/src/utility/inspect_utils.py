@@ -51,6 +51,8 @@ def is_type(node: pm.PyNode, node_type: pm.PyNode) -> bool:
     shape = get_shape(node)
     return isinstance(shape, node_type)
 
+def is_vector(node: pm.PyNode) -> bool:
+    return isinstance(node, pm.datatypes.Vector)
 
 
 # Filtering functions

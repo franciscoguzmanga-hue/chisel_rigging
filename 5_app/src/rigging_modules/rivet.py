@@ -10,6 +10,8 @@ How to:
     - Use: Execute the create_river function with the desired parameters.
     - Extend: Add more rivet-related functions as needed.
     - Test: Use pymel.core to create transform nodes and test the functions interactively in Maya.
+
+TODO: IMPLEMENT.
 ################################################################################################################
 '''
 
@@ -152,4 +154,59 @@ def create_rivet(surface: pm.PyNode, transform: pm.nt.Transform, is_orbital=Fals
         pm.delete(closest)
 
     return follicle
+
+class Orbital(RigModule):
+    """
+    SUMMARY:
+       Crea folliculos orbitales que siguen a los objetos seleccionados.
+       Seleccionar:
+           Primero Surface.
+           Luego cualquier cantidad de objetos Transform que guiaran a los foliculos.
+    """
+
+    def __init__(self, name, surface, *follow_at):
+        super().__init__(name)
+        self.surface = surface
+        self.follow_at = follow_at
+
+    def build(self):
+        ##    SELECCIONA PRIMERO EL SURFACE Y LUEGO LOS OBJETOS QUE SEGUIRÁN LOS FOLLICULOS.
+        # surface, *follow_at = pm.selected()
+
+        ##    SEGUIR SOLO SI LA SELECCION ES UN SURFACE.
+        if isinstance(self.surface.getShape(), pm.nt.NurbsSurface):
+            ##    ASEGURAR QUE EL SURFACE ESTA CONFIGURADO DE 0 A 1.
+            pm.rebuildSurface(self.surface, rpo=1, rt=0, end=1, kr=0, kcp=1, kc=0, su=4, du=3, sv=4, dv=3, tol=0.01,
+                              fr=0, dir=2)
+            pm.select(self.surface)
+            pm.mel.eval('doBakeNonDefHistory( 1, {"prePost" });')
+            surface_shape = [shape for shape in self.surface.getShapes() if shape.intermediateObject.get() == 0][0]
+
+            super().build()
+            ##    CREAR ORBITAL POR CADA OBJECO GUIA.
+            for obj in self.follow_at:
+                closest = pm.nt.ClosestPointOnSurface(n=f"{obj.name()}_closestNode")
+                surface_shape.worldSpace >> closest.inputSurface
+
+                ##    OBTENER UBICACION DE LOS OBJETOS RESPECTO AL MUNDO.
+                decompose_matrix = pm.nt.DecomposeMatrix(n=f"{obj.name()}_decomposeMatrix")
+                obj.worldMatrix >> decompose_matrix.inputMatrix
+                decompose_matrix.outputTranslate >> closest.inPosition
+
+                ##    CREAR FOLICULO.
+                fol_shape = pm.nt.Follicle()
+                fol = fol_shape.getParent()
+                fol.rename(f"{obj.name()}_orbitalFollicle")
+
+                ##    CONECTAR PARAMETROS A SHAPE DEL FOLICULO.
+                surface_shape.worldSpace >> fol_shape.inputSurface
+                closest.parameterU >> fol_shape.parameterU
+                closest.parameterV >> fol_shape.parameterV
+
+                ##    CONECTAR TRANSFORMACIONES A FOLICULO. ESCALA SERA LA ESCALA DEL OBJETO GUIA.
+                fol_shape.outTranslate >> fol.t
+                fol_shape.outRotate >> fol.r
+                decompose_matrix.outputScale >> fol.s
+
+                pm.parent(fol, self.group_hidden)
 

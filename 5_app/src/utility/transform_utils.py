@@ -19,7 +19,7 @@ from src.utility.math_utils import get_distance
 
 
 # Transform Manipulation Functions
-def create_transform_node(name:str, parent: pm.nt.Transform =None) -> pm.nt.Transform:
+def get_or_create_transform(name:str, parent: pm.nt.Transform =None) -> pm.nt.Transform:
     """Create a group transform node with the given name or cast it if it already exists.
     Args:
         name (str): Name of the transform node.
@@ -99,9 +99,9 @@ def freeze_transform(transform_node: pm.nt.Transform, position=True, rotation=Tr
 
 def reset_transform(transform_node: pm.nt.Transform, position=True, rotation=True, scale=True) -> None:
     if position:
-        transform_node.setTranslation((0,0,0), ws=True)
+        transform_node.setTranslation((0,0,0))
     if rotation:
-        transform_node.setRotation((0,0,0), ws=True)
+        transform_node.setRotation((0,0,0))
     if scale:
         transform_node.setScale((1,1,1))
 
@@ -162,7 +162,8 @@ def create_offset(transform_node: pm.nt.Transform, offset_name_suffix="_offset")
     """
     name = f"{transform_node.name()}{offset_name_suffix}"
     offset_transform = pm.nt.Transform(n=name)
-    offset_transform.setMatrix(transform_node.getMatrix(worldSpace=True), worldSpace=True)
+    pm.delete((pm.parentConstraint(transform_node, offset_transform)))
+    pm.delete((pm.scaleConstraint(transform_node, offset_transform)))
 
     pm.parent(offset_transform, transform_node.getParent())
     pm.parent(transform_node, offset_transform)

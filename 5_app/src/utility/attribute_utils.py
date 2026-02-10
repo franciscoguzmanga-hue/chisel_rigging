@@ -127,3 +127,25 @@ def reset_attribute(attribute: pm.Attribute) -> None:
         default_value = attribute.getDefault()
         attribute.set(default_value)
 
+def connect_or_assign_value(value, target_attribute: pm.Attribute) -> None:
+    """Connect the value to the target attribute if it's an attribute, else assign the value to the attribute.
+
+    Args:
+        value (int, float, list, pm.Attribute): The value to connect or assign.
+        target_attribute (pm.Attribute): The attribute to connect or assign the value to.
+    """
+    is_source_attr = isinstance(value, pm.Attribute)
+    is_source_vector = (is_source_attr and value.type() == "double3") or isinstance(value, (pm.dt.Vector, list))
+
+    is_target_vector = target_attribute.type() == "double3" or target_attribute.type() == "float3"
+
+    current_target = target_attribute
+    if is_target_vector and not is_source_vector:
+        current_target = target_attribute.getChildren()[0]
+
+    if is_source_attr:
+        value >> current_target
+    else:
+        current_target.set(value)
+
+

@@ -1,10 +1,10 @@
 '''
-################################################################################################################
-Author: Francisco Guzmán
-
 Content: Test file of the squash and stretch module.
 Dependency: src.rigging_modules.squash_stretch
 Maya Version tested: 2024
+
+Author: Francisco Guzmán
+Email: francisco.guzmanga@gmail.com
 
 How to:
     - Use: Open in Maya's script editor and run.
@@ -13,12 +13,9 @@ How to:
         - This test will create a functional module of SS on the sphere.
         - The squash and stretch main module moves the module, but not the mesh. This way the animator can adjust the SS behavior.
         - 
-################################################################################################################
 '''
 
-
 import importlib
-
 import pymel.core as pm
 
 importlib.reload(importlib.import_module("src.utility.transform_utils"))
@@ -30,11 +27,12 @@ importlib.reload(importlib.import_module("src.rigging_modules.squash_stretch"))
 
 from src.rigging_modules.squash_stretch import SquashStretch
 
-
 # Create clean scene.
 pm.mel.eval("file -f -new;")
 
+# Create sphere to apply squash and stretch.
 sphere = pm.polySphere()[0]
 
+# Build squash and stretch module.
 squash_stretch = SquashStretch("SS", sphere)
 squash_stretch.build()

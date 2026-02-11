@@ -1,22 +1,21 @@
 '''
-################################################################################################################
-Author: Francisco Guzmán
-
-Content: Simple mathematical functions.
+Content: Mathematical functions.
 Dependency: pymel.core
 Maya Version tested: 2024
+
+Author: Francisco Guzmán
+Email: francisco.guzmanga@gmail.com
 
 How to:
     - Use: Import the module and call the functions as needed.
     - Test: Use pymel.core to create vectors and transforms and test the functions interactively in Maya.
-################################################################################################################
 '''
 
 
 import pymel.core as pm
 
 
-def get_distance(point_a: pm.dt.Vector, point_b: pm.dt.Vector) -> float:
+def get_distance_between_vectors(point_a: pm.dt.Vector, point_b: pm.dt.Vector) -> float:
     vec_a = pm.datatypes.Vector(point_a)
     vec_b = pm.datatypes.Vector(point_b)
     return (vec_b - vec_a).length()
@@ -24,9 +23,9 @@ def get_distance(point_a: pm.dt.Vector, point_b: pm.dt.Vector) -> float:
 def get_distance_between_transforms(transform_a: pm.nt.Transform, transform_b: pm.nt.Transform) -> float:
     pos_a = pm.xform(transform_a, q=True, ws=True, t=True)
     pos_b = pm.xform(transform_b, q=True, ws=True, t=True)
-    return get_distance(pos_a, pos_b)
+    return get_distance_between_vectors(pos_a, pos_b)
 
-def get_midpoint(point_a: pm.dt.Vector, point_b: pm.dt.Vector) -> pm.datatypes.Vector:
+def get_midpoint_between_vectors(point_a: pm.dt.Vector, point_b: pm.dt.Vector) -> pm.datatypes.Vector:
     vec_a = pm.datatypes.Vector(point_a)
     vec_b = pm.datatypes.Vector(point_b)
     midpoint = (vec_a + vec_b) / 2
@@ -35,9 +34,10 @@ def get_midpoint(point_a: pm.dt.Vector, point_b: pm.dt.Vector) -> pm.datatypes.V
 def get_midpoint_between_transforms(transform_a: pm.nt.Transform, transform_b: pm.nt.Transform) -> pm.datatypes.Vector:
     pos_a = pm.xform(transform_a, q=True, ws=True, t=True)
     pos_b = pm.xform(transform_b, q=True, ws=True, t=True)
-    return get_midpoint(pos_a, pos_b)
+    return get_midpoint_between_vectors(pos_a, pos_b)
 
-"""def calculate_pole_vector(start_pos: pm.dt.Vector, end_pos: pm.dt.Vector, mid_pos: pm.dt.Vector, scale=1.0) -> pm.datatypes.Vector:
+def calculate_pole_vector(start_pos: pm.dt.Vector, end_pos: pm.dt.Vector, mid_pos: pm.dt.Vector, scale=1.0) -> pm.datatypes.Vector:
+    """Find the location of the pole vector."""
     start_vec = pm.datatypes.Vector(start_pos)
     end_vec = pm.datatypes.Vector(end_pos)
     mid_vec = pm.datatypes.Vector(mid_pos)
@@ -51,5 +51,5 @@ def get_midpoint_between_transforms(transform_a: pm.nt.Transform, transform_b: p
     perpendicular_vec = start_to_mid - projection_vec
     pole_vector = perpendicular_vec.normal() * scale
 
-    return pole_vector + mid_vec"""
+    return pole_vector + mid_vec
 

@@ -1,17 +1,16 @@
 '''
-################################################################################################################
-Author: Francisco Guzmán
-
 Content: Testing script for Ribbon module.
 Dependency: pymel.core, src.rigging_modules.ribbon
 Maya Version tested: 2024
+
+Author: Francisco Guzmán
+Email: francisco.guzmanga@gmail.com
 
 How to:
     - Use: Call the script in Maya's script editor to execute the test.
     - Test: 
         - The script creates a ribbon setup using the Ribbon module.
         - Functionality can be tested moving controls.
-################################################################################################################
 '''
 
 import importlib

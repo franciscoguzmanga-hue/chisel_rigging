@@ -41,7 +41,7 @@ import pymel.core as pm
 
 from src.utility.transform_utils import align_transform, create_offset
 from src.utility.attribute_utils import reset_attribute, lock_and_hide_attribute, Vector
-
+from src.utility.inspect_utils import is_nurbs_curve
 
 class ColorIndex(Enum):
     RED     = 13
@@ -65,8 +65,11 @@ class Control(ControlInterface):
     suffix = "_ctrl"
 
     def __init__(self, control= None):
-        self.transform = pm.nt.Transform(control) if control and pm.objExists(control) else None
+        self.transform = None
         self.offset = None
+        
+        if control and pm.objExists(control) and is_nurbs_curve(control):
+            self.transform = pm.nt.Transform(control)        
 
     def __str__(self):
         return self.transform.name()
@@ -188,7 +191,7 @@ class Control(ControlInterface):
 
         return self
     
-    def replace_shape(self, new_controls: list[pm.nt.Transform]) -> 'Control':
+    def replace_shape(self, *new_controls: pm.nt.Transform) -> 'Control':
         """Replace the current control shape with new control shapes.
 
         Args:

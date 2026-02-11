@@ -1,10 +1,10 @@
 '''
-################################################################################################################
-Author: Francisco Guzmán
-
 Content: Test script for Template module.
 Dependency: pymel.core, src.rigging_modules.template
 Maya Version tested: 2024
+
+Author: Francisco Guzmán
+Email: francisco.guzmanga@gmail.com
 
 How to:
     - Use: Execute the script in Maya's script editor to run the tests.
@@ -12,13 +12,10 @@ How to:
         - The script creates a clean scene and sets up reference joints.
         - It tests the creation of a single template locator and a batch of template locators.
         - It tests moving objects to template locators and moving template locators back to original objects, checking for correct positioning.
-################################################################################################################
 '''
-
 
 import importlib
 import pymel.core as pm
-
 
 import src.rigging_modules.template as template_module
 importlib.reload(template_module)

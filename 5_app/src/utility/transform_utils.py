@@ -1,15 +1,14 @@
 '''
-################################################################################################################
-Author: Francisco Guzmán
-
 Content: Basic utility functions for transform nodes in Maya.
 Dependency: pymel.core
 Maya Version tested: 2024
 
+Author: Francisco Guzmán
+Email: francisco.guzmanga@gmail.com
+
 How to:
     - Use: Import module and call functions with pymel transform nodes as arguments.
     - Extend: Add more utility functions as needed.
-################################################################################################################
 '''
 
 
@@ -22,14 +21,16 @@ from src.utility.math_utils import get_distance
 def get_or_create_transform(name:str, parent: pm.nt.Transform =None) -> pm.nt.Transform:
     """Create a group transform node with the given name or cast it if it already exists.
     Args:
-        name (str): Name of the transform node.
-        parent(pm.nt.Transform, optional): Parent transform node. Defaults is None.
-    Returns:
-        pm.nt.Transform: Created transform node.
+        name: Name of the transform node.
+        parent: Parent transform node. Defaults is None.
     """
-    group_node = pm.nt.Transform(name) if pm.objExists(name) else pm.nt.Transform(n=name)
-    if parent and pm.objExists(parent):
-        pm.parent(group_node, parent)
+    group_node = None
+    if pm.objExists(name):
+        group_node = pm.nt.Transform(name)
+    else:
+        group_node = pm.nt.Transform(n=name)
+        if parent and pm.objExists(parent):
+            pm.parent(group_node, parent)
     return group_node
 
 def flip_transform(transform_node: pm.nt.Transform, axis="x", replace_str=("_L", "_R"), use_scale=True) -> None:
@@ -55,7 +56,7 @@ def flip_transform(transform_node: pm.nt.Transform, axis="x", replace_str=("_L",
         transform_node.setTranslation(new_pos, ws=True)
 
 def mirror_transform(transform_node: pm.nt.Transform, axis="x", replace_str=("_L", "_R"), use_scale=True) -> pm.nt.Transform:
-    """Mirror a transform node along the specified axis.
+    """Create a copy of transform node and flip it along the specified axis.
     Args:
         transform_node (pm.nt.Transform): Transform node to mirror.
         axis (str, optional): Axis to mirror along. Defaults to "x".
@@ -73,16 +74,11 @@ def mirror_transform(transform_node: pm.nt.Transform, axis="x", replace_str=("_L
     pm.rename(duplicated_transform, new_name)
     return duplicated_transform
 
-def align_transform(master_transform: pm.nt.Transform, slave_transform: pm.nt.Transform, use_position=True, use_rotation=True, use_scale=False) -> None:
-    """Move slave transform to the exact matrix of the master transform.
-
-    Args:
-        master_transform (pm.nt.Transform): Reference transform node.
-        slave_transform (pm.nt.Transform): Transform node to align.
-        use_position (bool, optional): Whether to align position. Defaults to True.
-        use_rotation (bool, optional): Whether to align rotation. Defaults to True.
-        use_scale (bool, optional): Whether to align scale. Defaults to False.
-    """
+def align_transform(master_transform: pm.nt.Transform, slave_transform: pm.nt.Transform, 
+                    use_position=True, 
+                    use_rotation=True, 
+                    use_scale=False) -> None:
+    """Move slave transform to the exact matrix of the master transform."""
     if use_position:
         constraint = pm.pointConstraint(master_transform, slave_transform)
         pm.delete(constraint)
@@ -97,27 +93,30 @@ def freeze_transform(transform_node: pm.nt.Transform, position=True, rotation=Tr
     """Freeze the transformations of a transform node."""
     pm.makeIdentity(transform_node, apply=True, t=position, r=rotation, s=scale, n=False)
 
+def delete_history(transform_node: pm.nt.Transform) -> None:
+    pm.delete(transform_node, ch=True)
+
 def reset_transform(transform_node: pm.nt.Transform, position=True, rotation=True, scale=True) -> None:
-    if position:
+    if position: 
         transform_node.setTranslation((0,0,0))
     if rotation:
         transform_node.setRotation((0,0,0))
     if scale:
         transform_node.setScale((1,1,1))
 
-"""def fix_double_transform(transform_node: pm.nt.Transform) -> None:
-    decompose_matrix_node = pm.nt.DecomposeMatrix(n=f"{transform_node.name()}_fixDoubleTransform_decomposeMatrix")
+def negate_transform_matrix(transform_node: pm.nt.Transform) -> None:
+    # TODO: This is generating circular dependencies.
+    name = f"{transform_node.name()}_negateMatrix"
+    decompose_matrix_node = pm.nt.DecomposeMatrix(n=name)
+    
     transform_node.worldInverseMatrix >> decompose_matrix_node.inputMatrix
     decompose_matrix_node.outputTranslate >> transform_node.getParent().translate
     decompose_matrix_node.outputRotate >> transform_node.getParent().rotate
-    decompose_matrix_node.outputScale >> transform_node.getParent().scale"""
+    decompose_matrix_node.outputScale >> transform_node.getParent().scale
 
 # Transform getter functions
 def get_side_of_transform(transform_node: pm.nt.Transform, axis="x") -> int:
     """Get the side of the transform node along the specified axis.
-    Args:
-        transform_node (pm.nt.Transform): Transform node to check.
-        axis (str, optional): Axis to check along. Defaults to "x".
     Returns:
         int: 1 for positive side, -1 for negative side, 0 for center.
     """
@@ -132,13 +131,7 @@ def get_side_of_transform(transform_node: pm.nt.Transform, axis="x") -> int:
         return 0
     
 def get_closest_transform(reference_transform: pm.nt.Transform, transform_list: list) -> pm.nt.Transform:
-    """Get the closest transform from a list to the reference transform.
-    Args:
-        reference_transform (pm.nt.Transform): Reference transform node.
-        transform_list (list): List of transform nodes to check.
-    Returns:
-        pm.nt.Transform: The closest transform node.
-    """
+    """Get the closest transform from a list to the reference transform."""
     ref_pos = pm.xform(reference_transform, q=True, ws=True, t=True)
     closest_transform = None
     min_distance = float('inf')
@@ -153,13 +146,7 @@ def get_closest_transform(reference_transform: pm.nt.Transform, transform_list: 
 
 # Offset functions
 def create_offset(transform_node: pm.nt.Transform, offset_name_suffix="_offset") -> pm.nt.Transform:
-    """Create an offset group for the given transform node to zero out transformations.
-    Args:
-        transform_node (pm.nt.Transform): Transform node to create offset for.
-        offset_name_suffix (str, optional): Suffix for the offset group name. Defaults to "_offset".
-    Returns:
-        pm.nt.Transform: The created offset transform node.
-    """
+    """Create an offset group for the given transform node to zero out transformations."""
     name = f"{transform_node.name()}{offset_name_suffix}"
     offset_transform = pm.nt.Transform(n=name)
     pm.delete((pm.parentConstraint(transform_node, offset_transform)))
@@ -170,11 +157,7 @@ def create_offset(transform_node: pm.nt.Transform, offset_name_suffix="_offset")
     return offset_transform
 
 def center_offset(transform_node: pm.nt.Transform) -> None:
-    """Zero out transform node by centering the offset of the given transform node to the current world matrix.
-    
-    Args:
-        transform_node (pm.nt.Transform): Transform node to center offset for.
-    """
+    """Zero out transform node by centering it's offset."""
     offset_transform = transform_node.getParent()
     if not offset_transform:
         pm.warning(f"{transform_node.name()} has no parent offset to center.")
@@ -187,17 +170,12 @@ def center_offset(transform_node: pm.nt.Transform) -> None:
 
 # Pivot functions
 def bake_pivot(transform_node: pm.nt.Transform) -> None:
-    """Bake the pivot of the given transform node to its current position.
-    Args:
-        transform_node (pm.nt.Transform): Transform node to bake pivot for.
-    """
     selection = pm.selected()
     pm.select(transform_node)
     pm.mel.eval("BakeCustomPivot;")
     pm.select(selection)
 
 def set_center_pivot(transform_node: pm.nt.Transform) -> None:
-    """Set the pivot of the given transform node to its center point."""
     center_point = get_center_pivot(transform_node)
     pm.xform(transform_node, piv=center_point, ws=True)
 
@@ -210,37 +188,32 @@ def get_center_pivot(transform_node: pm.nt.Transform) -> pm.datatypes.Vector:
 
 # Axis visibility funcions
 def show_axis(transform_node: pm.nt.Transform) -> None:
-    """ Display the local axis of the given transform node in the viewport. """
+    """ Display the local axis in the viewport. """
     transform_node.displayLocalAxis.set(1)
 
 def hide_axis(transform_node: pm.nt.Transform) -> None:
-    """Hide the local axis of the given transform node in the viewport."""
+    """Hide the local axis in the viewport."""
     transform_node.displayLocalAxis.set(0)
     
 def has_visible_axis(transform_node: pm.nt.Transform) -> bool:
-    """Ask if the local axis of the given transform node is visible in the viewport."""
+    """Ask if the local axis is visible in the viewport."""
     return transform_node.displayLocalAxis.get()
 
 
 # Hierarchy Functions
 def build_hierarchy_from_list(transform_list: list[pm.nt.Transform]) -> pm.nt.Transform:
-    """Build a parent-child hierarchy from the given list of transform nodes in order."""
+    """Build a parent-child hierarchy following the list order."""
     for i in range(1, len(transform_list)):
         pm.parent(transform_list[i], transform_list[i-1])
     return transform_list[0]
 
 def is_ancestor(ancestor_transform: pm.nt.Transform, descendant_transform: pm.nt.Transform) -> bool:
-    """Check if the ancestor_transform is an ancestor of the descendant_transform.
-    Args:
-        ancestor_transform (pm.nt.Transform): Potential ancestor transform node.
-        descendant_transform (pm.nt.Transform): Potential descendant transform node.
-    Returns:
-        bool: True if ancestor_transform is an ancestor of descendant_transform, False otherwise.
-    """
+    """Check if the ancestor_transform is an ancestor of the descendant_transform."""
     ancestors = descendant_transform.getAllParents()
     return ancestor_transform in ancestors
 
 def has_children(transform_node: pm.nt.Transform) -> bool:
+    # TODO: Check if the transform has non-shape nodes.
     """Check if the given transform node has children."""
     children = transform_node.getChildren(type=pm.nt.Transform)
     return len(children) > 0
@@ -253,9 +226,9 @@ def create_hierarchy_from_dict(structure: dict, parent: pm.nt.Transform=None) ->
         parent (pm.nt.Transform, optional): Parent transform node. Defaults to None.
     """
     for key in structure.keys():
-        transform_node = create_transform_node(key, parent)
+        transform_node = get_or_create_transform(key, parent)
         if structure[key]:
-            build_structure(structure[key], transform_node)
+            create_hierarchy_from_dict(structure[key], transform_node)
 
 # Display Functions
 def set_display_normal(transform_node: pm.nt.Transform) -> None:
@@ -275,11 +248,9 @@ def set_display_reference(transform_node: pm.nt.Transform) -> None:
 
 # Locking Functions
 def lock_node(node: pm.PyNode) -> None:
-    """Lock the given node."""
     node.setLocked(True)
 
 def unlock_node(node: pm.PyNode) -> None:
-    """Unlock the given node."""
     node.setLocked(False)
 
 

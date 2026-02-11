@@ -151,7 +151,7 @@ def move_locator_to_object(locators: list[pm.nt.Transform]) -> list[pm.nt.Transf
 
 
 # Template adjustments functions
-def constraint_to_midpoint(locator_A: pm.nt.Transform, locator_B: pm.nt.Transform, locator_mid: pm.nt.Transform, creates_offset=True) -> pm.nt.PointConstraint:
+def constraint_to_midpoint(locator_A: pm.nt.Transform, locator_B: pm.nt.Transform, locator_mid: pm.nt.Transform) -> pm.nt.PointConstraint:
     """Using point constraint, moves the locator_mid to the exact middle position.
        Useful to find the correct position of knees and elbows.
 

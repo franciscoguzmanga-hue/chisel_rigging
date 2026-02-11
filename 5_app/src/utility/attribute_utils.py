@@ -1,22 +1,20 @@
 '''
-################################################################################################################
-Author: Francisco Guzmán
-
 Content: Collection of functions to manipulate node attributes inside Maya.
 Dependency: pymel.core, Enum
 Maya Version tested: 2024
 
+Author: Francisco Guzmán
+email: francisco.guzmanga@gmail.com
+
 How to:
     - Use: Import the module and call the functions as needed.
     - Test: Use pymel.core to create transform nodes and test the functions interactively in Maya.
-################################################################################################################
 '''
 
 
 from enum import Enum
 
 import pymel.core as pm
-
 
 
 class Vector(Enum):
@@ -29,7 +27,7 @@ class Vector(Enum):
 
 
 # Attribute Manipulation Functions
-def connect_attributes(master: pm.nt.Transform, slave: pm.nt.Transform, attributes=("t", "r", "s", "v")) -> None:
+def connect_attributes(master: pm.nt.Transform, slave: pm.nt.Transform, attributes=("t", "r", "s", "v")):
     """Connect related attributes between two transforms.
 
     Args:
@@ -41,7 +39,7 @@ def connect_attributes(master: pm.nt.Transform, slave: pm.nt.Transform, attribut
         if slave.hasAttr(attr) and master.hasAttr(attr):
             master.attr(attr) >> slave.attr(attr)
 
-def connect_all_keyable_attributes(master: pm.nt.Transform, slave: pm.nt.Transform) -> None:
+def connect_all_keyable_attributes(master: pm.nt.Transform, slave: pm.nt.Transform):
     """Connect all keyable and related attributes between two transform nodes.
 
     Args:
@@ -67,7 +65,7 @@ def get_selected_attributes(transform_node: pm.nt.Transform) -> list[pm.Attribut
             attributes.append(transform_node.attr(attribute))
     return attributes
 
-def update_attribute_default(attribute: pm.Attribute) -> None:
+def update_attribute_default(attribute: pm.Attribute):
     """Update the default value of an attribute to its current value.
 
     Args:
@@ -76,10 +74,10 @@ def update_attribute_default(attribute: pm.Attribute) -> None:
     current_value = attribute.get()
     pm.addAttr(attribute, edit=True, defaultValue=current_value)
 
-def lock_attribute(attribute: pm.Attribute) -> None:
+def lock_attribute(attribute: pm.Attribute):
     attribute.set(lock=True)
 
-def lock_and_hide_attribute(attribute: pm.Attribute) -> None:
+def lock_and_hide_attribute(attribute: pm.Attributee):
     """Lock and hide the given attribute from the channelBox.
 
     Args:
@@ -89,7 +87,7 @@ def lock_and_hide_attribute(attribute: pm.Attribute) -> None:
     attribute.setKeyable(False)
     attribute.showInChannelBox(False)
 
-def unlock_attribute(attribute: pm.Attribute) -> None:
+def unlock_attribute(attribute: pm.Attribute):
     """Unlock and set it visible in the channel box.
 
     Args:
@@ -99,13 +97,13 @@ def unlock_attribute(attribute: pm.Attribute) -> None:
     attribute.setKeyable(True)
     attribute.showInChannelBox(True)
 
-def set_non_keyable(attribute: pm.Attribute) -> None:
+def set_non_keyable(attribute: pm.Attribute):
     attribute.set(keyable=False)
 
-def set_keyable(attribute: pm.Attribute) -> None:
+def set_keyable(attribute: pm.Attribute):
     attribute.set(keyable=True)
 
-def create_proxy_attribute(source_attribute: pm.Attribute, target_node: pm.nt.Transform) -> None:
+def create_proxy_attribute(source_attribute: pm.Attribute, target_node: pm.nt.Transform):
     """Create an attribute from a source and keep it related, similar to an instance.
        Helps to have an attribute accessible from different transform nodes and simplify animation.
 
@@ -117,7 +115,7 @@ def create_proxy_attribute(source_attribute: pm.Attribute, target_node: pm.nt.Tr
     if not target_node.hasAttr(proxy_attr_name):
         pm.addAttr(target_node, ln=proxy_attr_name, k=True, proxy=source_attribute)
 
-def reset_attribute(attribute: pm.Attribute) -> None:
+def reset_attribute(attribute: pm.Attribute):
     """Reset the attribute to its default value if it is keyable, settable, and not locked.
 
     Args:
@@ -127,12 +125,13 @@ def reset_attribute(attribute: pm.Attribute) -> None:
         default_value = attribute.getDefault()
         attribute.set(default_value)
 
-def connect_or_assign_value(value, target_attribute: pm.Attribute) -> None:
-    """Connect the value to the target attribute if it's an attribute, else assign the value to the attribute.
+def connect_or_assign_value(value, target_attribute: pm.Attribute):
+    """If the parameter value is not pm.Attribute, assign the value to target_attribute.
+       If the parameter value is pm.Attribute, connects it to target_attribute.
 
     Args:
         value (int, float, list, pm.Attribute): The value to connect or assign.
-        target_attribute (pm.Attribute): The attribute to connect or assign the value to.
+        target_attribute: The attribute to connect or assign the value to.
     """
     is_source_attr = isinstance(value, pm.Attribute)
     is_source_vector = (is_source_attr and value.type() == "double3") or isinstance(value, (pm.dt.Vector, list))

@@ -1,18 +1,17 @@
 
 '''
-################################################################################################################
-Author: Francisco Guzmán
-
 Content: Basic utility functions for inspecting node types in Maya.
 Dependency: pymel.core
 Maya Version tested: 2024
 
+Author: Francisco Guzmán
+Email: francisco.guzmanga@gmail.com
+
 How to:
     - Use: Import the module and call the functions as needed.
     - Test: Use pymel.core to create nodes and test the functions interactively in Maya.
-################################################################################################################
-'''
 
+'''
 
 import pymel.core as pm
 
@@ -56,37 +55,37 @@ def is_vector(node: pm.PyNode) -> bool:
 
 
 # Filtering functions
-def filter_meshes(nodes: list) -> list:
+def filter_meshes(nodes: list[pm.PyNode]) -> list[pm.nt.Transform]:
     return [node for node in nodes if is_mesh(node)]
 
-def filter_nurbs_surfaces(nodes: list) -> list:
+def filter_nurbs_surfaces(nodes: list[pm.PyNode]) -> list[pm.nt.Transform]:
     return [node for node in nodes if is_nurbs_surface(node)]
 
-def filter_nurbs_curves(nodes: list) -> list:
+def filter_nurbs_curves(nodes: list[pm.PyNode]) -> list:
     return [node for node in nodes if is_nurbs_curve(node)]
 
-def filter_locators(nodes: list) -> list:
+def filter_locators(nodes: list[pm.PyNode]) -> list[pm.nt.Transform]:
     return [node for node in nodes if is_locator(node)] 
 
-def filter_joints(nodes: list) -> list:
+def filter_joints(nodes: list[pm.PyNode]) -> list[pm.nt.Joint]:
     return [node for node in nodes if is_joint(node)]
 
-def filter_out_constraints(selection: list) -> list:
+def filter_out_constraints(selection: list[pm.PyNode]) -> list[pm.PyNode]:
     return [node for node in selection if not isinstance(node, pm.nt.Constraint)]
 
-def filter_out_joints(selection: list) -> list:
+def filter_out_joints(selection: list[pm.PyNode]) -> list[pm.PyNode]:
     return [node for node in selection if not is_joint(node)]
 
-def filter_out_nurbs_curves(selection: list) -> list:
+def filter_out_nurbs_curves(selection: list[pm.PyNode]) -> list[pm.PyNode]:
     return [node for node in selection if not is_nurbs_curve(node)]
 
-def filter_out_nurbs_surfaces(selection: list) -> list:
+def filter_out_nurbs_surfaces(selection: list[pm.PyNode]) -> list[pm.PyNode]:
     return [node for node in selection if not is_nurbs_surface(node)]
 
-def filter_out_meshes(selection: list) -> list:
+def filter_out_meshes(selection: list[pm.PyNode]) -> list[pm.PyNode]:
     return [node for node in selection if not is_mesh(node)]
 
-def filter_out_locators(selection: list) -> list:
+def filter_out_locators(selection: list[pm.PyNode]) -> list[pm.PyNode]:
     return [node for node in selection if not is_locator(node)]
 
 

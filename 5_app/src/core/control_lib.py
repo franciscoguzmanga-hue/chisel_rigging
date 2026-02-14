@@ -3,7 +3,11 @@
 Author: Francisco Guzmán
 
 Content: Centralized control creation.
-Dependency: pymel.core, src.utility.transform_utils, src.utility.attribute_utils
+Dependency: 
+    pymel.core
+    src.utility.transform_utils
+    src.utility.attribute_utils
+    src.utility.inspect_utils
 Maya Version tested: 2024
 
 How to:
@@ -35,13 +39,15 @@ How to:
 
 from enum import Enum
 from abc import ABC, abstractmethod
-from enum import Enum
 
 import pymel.core as pm
 
-from src.utility.transform_utils import align_transform, create_offset
-from src.utility.attribute_utils import reset_attribute, lock_and_hide_attribute, Vector
-from src.utility.inspect_utils import is_nurbs_curve
+from src.utility import transform_utils as tutils
+from src.utility import attribute_utils as autils
+from src.utility import inspect_utils   as iutils
+
+from src.utility.attribute_utils import Vector
+
 
 class ColorIndex(Enum):
     RED     = 13
@@ -64,12 +70,14 @@ class ControlInterface(ABC):
 class Control(ControlInterface):
     suffix = "_ctrl"
 
-    def __init__(self, control= None):
+    def __init__(self, control_name= None):
+        self.name = control_name
         self.transform = None
         self.offset = None
         
-        if control and pm.objExists(control) and is_nurbs_curve(control):
-            self.transform = pm.nt.Transform(control)        
+        already_exists = self.name and pm.objExists(control_name) and iutils.is_nurbs_curve(control_name)
+        if already_exists:
+            self.transform = pm.nt.Transform(control_name)
 
     def __str__(self):
         return self.transform.name()
@@ -148,9 +156,9 @@ class Control(ControlInterface):
             Control: Self control instance.
         """
         if self.offset:
-            align_transform(parent, self.offset)
+            tutils.align_transform(parent, self.offset)
         else:
-            align_transform(parent, self.transform)
+            tutils.align_transform(parent, self.transform)
         return self
 
     def create_offset(self, suffix="_offset") -> 'Control':
@@ -162,7 +170,7 @@ class Control(ControlInterface):
         Returns:
             Control: Self control instance.
         """
-        self.offset = create_offset(self.transform, offset_name_suffix=suffix)
+        self.offset = tutils.create_offset(self.transform, offset_name_suffix=suffix)
         return self
 
     def combine_shape(self, new_curves: list[pm.nt.Transform]) -> 'Control':
@@ -248,7 +256,7 @@ class Control(ControlInterface):
             Control: Self control instance.
         """
         attributes = self.transform.listAttr(keyable=True)
-        [reset_attribute(attr) for attr in attributes]
+        [autils.reset_attribute(attr) for attr in attributes]
         return self
 
     def lock_channels(self, *channels: str) -> 'Control':
@@ -265,7 +273,7 @@ class Control(ControlInterface):
         for attr in channels:
             if not self.transform.hasAttr(attr): continue
             attribute_node = self.transform.attr(attr)
-            lock_and_hide_attribute(attribute_node)
+            autils.lock_and_hide_attribute(attribute_node)
         return self
 
     def set_line_thick(self) -> 'Control':
@@ -290,6 +298,19 @@ class Control(ControlInterface):
             shape.lineWidth.set(1)
         return self
     
+    def shape_copy(self):
+        copy = self.transform.duplicate()[0]
+        if tutils.has_children(copy):
+            pm.delete(copy.getChildren(type="transform"))
+        attributes = self.transform.listAttr(keyable=True)
+        [autils.reset_attribute(attr) for attr in attributes]
+        return copy
+
+    def shape_mirror(self):
+        copy = self.shape_copy()
+        tutils.mirror_transform(copy)
+        return copy
+
 
 class Circle(Control):
     def create(self, name= "curve", normal= [1,0,0]) -> 'Control':
@@ -299,11 +320,11 @@ class Circle(Control):
 
 
 class Semicircle(Circle):
-    def __init__(self, name: str, normal=[1, 0, 0], reference=None, scale=[1, 1, 1], is_constrained=False):
-        super().__init__(name, normal, reference, scale, is_constrained)
+    def __init__(self, control_name: str):
+        super().__init__(control_name)
 
     def create(self):
-        super().create()
+        super().create(name="semicircle", normal=[1, 0, 0])
 
         cvs = pm.ls(self.transform + ".cv[*]", fl=True)
 

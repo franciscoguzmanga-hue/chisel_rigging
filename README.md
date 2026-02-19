@@ -1,19 +1,40 @@
-Project: "Chisel" – A Rigging Productivity Tool (Maya) The concept behind this tool is to act as a "chisel" for precision work. While an "autorig" is the hammer that does the heavy lifting, manual rigging is often slowed down by repetitive tasks that require multiple clicks. This tool provides a "scalpel-like" precision to modify or improve rigs, whether they were built in-house or received from external studios.
+# 🪚 Chisel – Maya Rigging Productivity Tool (In Development)
 
-The key capabilities include:
+**Chisel** is a precision rigging toolkit designed to handle the "surgery" of rig setup. 
 
-Creation & Hierarchy: Simplify the creation of basic elements (Locators, Joints, Groups) at selection points and build hierarchies based on selection order.
+While an **autorig** is the hammer that does the heavy lifting, **Chisel** is the scalpel. It focuses on eliminating the repetitive clicks and manual overhead involved in modifying, refining, and polishing rigs—whether they were built in-house or received from external studios.
 
-Deformation & Skinning: Extract skinned joints from meshes and copy skinning from one object to multiple selections (transform or component).
+---
 
-Control Rigging: Advanced control creation and manipulation (offsets, constraints, direct connections, and shape/color customization).
+## 🚀 Features
 
-Automated Setups: Local rig creation, automatic blendshape target assignment, and simple module creation (FK, Ribbon).
+### 🏗️ Creation & Hierarchy
+* **Smart Creation:** Generate Locators, Joints, and Groups exactly at selection points, could be joints, transforms or any component.
+* **Auto-Hierarchy:** Build complex parent-child structures based on your selection order in a single click.
 
-Attribute Management: Create proxy attributes and modify default values.
+### 🧬 Deformation & Skinning
+* **Joint Extraction:** Quickly identify and extract skinned joints from any mesh.
+* **Mass Skin Copy:** Transfer skinning data from a source object to multiple selections (supports both transforms and components).
+* **Renaming deformers:** When diagnosing is useful to have every deformer named after the mesh, surface that they are influencing.
 
-The "Surgery" Module: * Nodes: Manage and rename constraints, skinClusters, and blendshape nodes.
+### 🎮 Control Rigging
+* **Advanced Controls:** Create controls with automatic offsets and constraints.
+* **Direct Connections:** Streamline the process of connecting attributes or driving transforms.
+* **Customization:** Visual tools to modify control shapes, orientation, and color coding.
 
-Cleanup: Unlock nodes, remove unused/unknown nodes, and toggle axis or joint visibility.
+### 🤖 Automated Setups
+* **Modules:** Instant creation of 
+    - Limb FK / IK chains.
+    - Ribbon setups.
+    - Squash & Stretch setups.
+* **Blendshapes:** Automatic target assignment to save time on facial or corrective rigging.
+* **Local Rigs:** Rapid setup of localized transform systems.
 
-Advanced Filtering: Filter selections by type (Joint, Locator, Mesh, Nurbs) or by hierarchy (leaf nodes vs. non-leaf nodes).
+### 🧪 The "Surgery" Module
+* **Node Management:** Powerful tools to rename, find, and manage `constraints`, `skinClusters`, and `blendshape` nodes.
+* **Attribute Tools:** Batch create proxy attributes and modify default values across multiple nodes.
+
+### 🧹 Cleanup & Filtering
+* **Rig Sanitization:** Unlock nodes, remove "unknown" or unused nodes, and toggle axis/joint visibility.
+* **Advanced Filtering:** Select specifically by type (Joint, Locator, Mesh, Nurbs) or by hierarchy position (Leaf nodes vs. Parent nodes).
+

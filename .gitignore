@@ -2,3 +2,5 @@
 *.pyc
 __pycache__/
 .vscode
+3_advanced/30_assignment_advanced.py
+3_advanced/31_assignment_app.py

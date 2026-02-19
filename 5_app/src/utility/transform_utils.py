@@ -14,7 +14,7 @@ How to:
 
 import pymel.core as pm
 
-from src.utility.math_utils import get_distance
+import src.utility.math_utils as mutils
 
 
 # Transform Manipulation Functions
@@ -138,7 +138,7 @@ def get_closest_transform(reference_transform: pm.nt.Transform, transform_list: 
     
     for transform in transform_list:
         target_pos = pm.xform(transform, q=True, ws=True, t=True)
-        distance = get_distance(ref_pos, target_pos)
+        distance = mutils.get_distance_between_transforms(ref_pos, target_pos)
         if distance < min_distance:
             closest_transform = transform
             min_distance = distance

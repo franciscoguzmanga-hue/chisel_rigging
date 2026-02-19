@@ -16,8 +16,8 @@ TODO: IMPLEMENT.
 
 
 import pymel.core as pm
-
-
+from src.core.control_lib import Circle, Vector
+from src.utility.transform_utils import is_ancestor
 
 class Limb(RigModule):
     def create_joints(self, quantity=5):
@@ -37,6 +37,36 @@ class FK(Limb):
     def __init__(self, name: str, joints=[]):
         super().__init__(name)
         self.joints = joints
+
+    def create_controls(self, references: pm.nt.Transform, normal: Vector, use_offset: bool) -> list[Control]:
+        control_suffix = "_ctrl"
+
+        # Sort objects by hierarchy depth.
+        objects = sorted(references, key= lambda obj: obj.name(long=True))
+
+        for obj_index in range(len(objects)):
+            obj = objects[obj_index]
+
+            # Control creation.
+            control_name = f"{obj}{control_suffix}"
+            control = Circle()
+            control.create(name=control_name, normal=normal)
+            control.align_to(obj)
+
+            # Parent control to the previous one in the hierarchy.
+            if obj_index > 0:
+                parent_object_name = f"{objects[obj_index-1]}"
+                parent_object = pm.nt.Transform(parent_object_name)
+                if not is_ancestor(parent_object, obj):
+                    continue
+                
+                control.parent_to(parent_object_name)
+                parent_control = f"{objects[obj_index-1]}{control_suffix}"
+                pm.parent(control.transform, parent_control)
+            
+            # Optional offset group.
+            if use_offset:
+                control.create_offset("_offset")
 
     def build(self):
         controls = []

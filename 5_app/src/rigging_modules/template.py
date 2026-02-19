@@ -26,8 +26,8 @@ from enum import Enum
 import pymel.core as pm
 
 from src.core.control_lib import Sphere
-from src.utility.transform_utils import align_transform, create_offset
-from src.utility.constraint_utils import pointConstraint_many_to_one, aimConstraint_many_to_one, Vector, WorldUpType
+import src.utility.transform_utils  as tutils
+import src.utility.constraint_utils as cutils
 
 
 TEMPLATE_SUFFIX = "_template"
@@ -59,11 +59,10 @@ def create_template_locator(name: str) -> pm.nt.Transform:
     locator = pm.spaceLocator(name= name)
     locator.getShape().localScale.set(.2, .2, .2)
 
-    sphere = Sphere()
-    sphere.create("temp_name")
-    shapes = sphere.transform.getShapes()
-    pm.parent(shapes, locator, s=True, r=True)
-    [shape.rename(f"{name}Shape") for shape in shapes]
+    sphere = Sphere("temp_name")
+    sphere.create()
+    pm.parent(sphere.shapes, locator, s=True, r=True)
+    [shape.rename(f"{name}Shape") for shape in sphere.shapes]
     pm.delete(sphere.transform)
 
     return locator
@@ -126,7 +125,7 @@ def move_objet_to_locator(locators: list[pm.nt.Transform]) -> list[pm.nt.Transfo
         original_object = get_original_transform(template)
         if not original_object: continue
         
-        align_transform(template, original_object)
+        tutils.align_transform(template, original_object)
         original_objects.append(original_object)
 
     return original_objects
@@ -145,7 +144,7 @@ def move_locator_to_object(locators: list[pm.nt.Transform]) -> list[pm.nt.Transf
         original_object = get_original_transform(locator)
         if not original_object: continue
 
-        align_transform(original_object, locator)
+        tutils.align_transform(original_object, locator)
         original_objects.append(original_object)
     return original_objects
 
@@ -163,8 +162,8 @@ def constraint_to_midpoint(locator_A: pm.nt.Transform, locator_B: pm.nt.Transfor
     Returns:
         pm.nt.PointConstraint: The created point constraint node.
     """
-    locator_mid_offset = create_offset(locator_mid)
-    point_constraint = pointConstraint_many_to_one(locator_A, locator_B, slave=locator_mid_offset, maintain_offset=False)
+    locator_mid_offset = tutils.create_offset(locator_mid)
+    point_constraint = cutils.pointConstraint_many_to_one(locator_A, locator_B, slave=locator_mid_offset, maintain_offset=False)
     return point_constraint
 
 def aim_to(master_locator: pm.nt.Transform, slave_locator: pm.nt.Transform) -> pm.nt.AimConstraint:
@@ -179,11 +178,11 @@ def aim_to(master_locator: pm.nt.Transform, slave_locator: pm.nt.Transform) -> p
     Returns:
         pm.nt.AimConstraint: The created aim constraint node.
     """
-    aim_constraint = aimConstraint_many_to_one(master_locator, slave_locator, 
+    aim_constraint = cutils.aimConstraint_many_to_one(master_locator, slave_locator, 
                                                maintain_offset=False, 
-                                               aim_vector=Vector.X_POS, 
-                                               up_vector=Vector.Z_POS, 
-                                               world_up_type=WorldUpType.OBJECT_ROTATE_AXIS, 
+                                               aim_vector=cutils.Vector.X_POS, 
+                                               up_vector=cutils.Vector.Z_POS, 
+                                               world_up_type=cutils.WorldUpType.OBJECT_ROTATE_AXIS, 
                                                worldUpObject=master_locator)
     return aim_constraint
 

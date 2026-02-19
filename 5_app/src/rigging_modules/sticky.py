@@ -1,3 +1,18 @@
+'''
+Content: Rigging module to build a zipper.
+Dependency: List dependencies or requirements
+Maya Version tested: 2024
+
+Author: Francisco Guzmán
+Email: francisco.guzmanga@gmail.com
+How to:
+    - Use: Instructions to use the module
+    - Test: Instructions to test the module
+
+TODO: Refactor code.
+'''
+
+
 import pymel.core as pm
 
 

@@ -77,7 +77,7 @@ def update_attribute_default(attribute: pm.Attribute):
 def lock_attribute(attribute: pm.Attribute):
     attribute.set(lock=True)
 
-def lock_and_hide_attribute(attribute: pm.Attributee):
+def lock_and_hide_attribute(attribute: pm.Attribute):
     """Lock and hide the given attribute from the channelBox.
 
     Args:

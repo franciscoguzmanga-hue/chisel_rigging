@@ -128,9 +128,9 @@ class SquashStretch(RigModule):
         for cluster in clusters:
             raw_name = cluster.name().replace("_cls", "") 
             name = f"{raw_name}_ctrl"
-            control = Sphere()
-            control.create(name)
-            control.align(cluster)            
+            control = Sphere(name)
+            control.create()
+            control.align_to(cluster)            
             
             pm.parentConstraint(control.transform, cluster.getParent(), mo=True)
             pm.scaleConstraint(control.transform, cluster.getParent(), mo=True)
@@ -149,13 +149,13 @@ class SquashStretch(RigModule):
         Returns:
             pm.nt.Transform: The main control transform node.
         """
-        main_control = Circle()
-        main_control.create(f"{self.name}_main_ctrl", normal=[0, 1, 0])
-        main_control.align(reference_position)
+        main_control = Circle(f"{self.name}_main_ctrl")
+        main_control.create(normal=[0, 1, 0])
+        main_control.align_to(reference_position)
         main_control.create_offset("_root")
-        main_control.scale_shape([2,2,2])
-        main_control.set_line_thick()
-        main_control.set_color_index(ColorIndex.YELLOW)
+        main_control.shape_scale([2,2,2])
+        main_control.shape_line_thick()
+        main_control.shape_color_index(ColorIndex.YELLOW)
         pm.parent(main_control.offset, self.grp_vis)
 
         self.register_controls(main_control.transform)

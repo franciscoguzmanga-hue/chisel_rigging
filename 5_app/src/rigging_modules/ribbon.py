@@ -248,9 +248,9 @@ class Ribbon(RigModule):
         
         for driver in drivers:
             name = f"{driver.name()[:-4]}_ctrl"
-            control = Circle()
-            control.create(name=name, normal=[1, 0, 0])
-            control.align(parent=driver)
+            control = Circle(control_name=name)
+            control.create(normal=[1, 0, 0])
+            control.align_to(parent=driver)
             control.create_offset(suffix="_root")
 
             matrix = driver.getMatrix(ws=True)

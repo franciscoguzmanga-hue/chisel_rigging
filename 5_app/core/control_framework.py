@@ -2,52 +2,31 @@
 ################################################################################################################
 Content: Centralized control creation.
 
-Dependency:
-    abc
-    os 
-    json
-    pymel.core
-    src.utility.transform_utils
-    src.utility.attribute_utils
-
+Dependency: abc, os, json, pymel.core, utility.maya_lib, utility.common
 Maya Version tested: 2024
 
 How to:
     - Use: 
         - Import the module and create control instances using the provided classes (e.g., Circle, Square, Text).
+            e.g: my_control = Circle(control_name="myCircle")
+        - Call create() method to generate the control shape and transform.
+            e.g: my_control.create(normal=common.Vector.Y_POS)
         
-            e.g 01: Manipulate control properties after creation.
-                my_control = Circle(control_name="myCircle")
-                my_control.create(normal=Vector.Y_POS)
-                my_control.align_to(parent=some_transform_node)
-                my_control.create_offset()
-                my_control.lock_channels("s", "v")
-                my_control.set_line_thick()
-                my_control.set_color_index(ColorIndex.BLUE)
-
-            e.g 02: Manipulate control properties using method chaining.
-                # Create control.
-                my_control = Circle(control_name="myCircle").create(normal=Vector.Z_POS)
-                # Manipulate control properties.
-                my_control.align_to(parent=some_transform_node).create_offset()
-                my_control.lock_channels("s", "v")
-                my_control.set_line_thick()
-
-            e.g 03: Cast existing transform node to control instance.
-                existing_transform = pm.PyNode("existing_ctrl")
-                my_control = Control(control_name=existing_transform)   # Cast existing transform.
-                my_control.set_color_rgb([1, 0, 0])                     # Set color to red
-
-            e.g 04: Store new control shape into json library.
-                sel = pm.selected()[0]                      # Store selected curve.
-                control = Circle(control_name=sel)         # Could be any control class instance.
-                control._store_curve_to_json("shape_name")  # Could be a curve with multiple shapes.
-
-            e.g 05: Renaming, offset and shapes assignation.
-                my_control = Circle(control_name="my_circle").create()
-                my_control.name = "my_circle_control"   # Renames the control transform and its shapes.
-                my_control.offset = "my_circle_offset"  # Allows to reassign or move from offset group.
-                my_control.shapes = [new_shape1, new_shape2] # Adds new shapes to the control.
+        - Optional: 
+            Manipulate control properties using method chaining.
+                e.g: my_control.align_to(parent=some_transform_node).create_offset()
+            Cast existing transform node to control instance.
+                e.g: my_control = Control(control_name=existing_transform_name)
+            Use setters and getters to create offsets, change colors, add shapes and rename the control.
+                e.g: my_control.name = "new_name"
+                     my_control.offset = "new_offset_transform"
+                     my_control.color = ColorIndex.RED
+                     my_control.shapes = [new_shape1, new_shape2]
+        
+        - Extend:
+            - Create a new class inheriting from Control and implement the create() method and define the shape creation logic.
+            - To add more control shape points to the library:
+                - Select the curve transform, and use the _store_curve_to_json() method to save its CV positions to the JSON file.
         
             
         - WARNING: the Control class is a base class and cannot create controls directly. Use one of its subclasses.
@@ -66,12 +45,10 @@ import os
 
 import pymel.core as pm
 
-from src.utility import transform_utils as tutils
-from src.utility import attribute_utils as autils
+import utility.maya_lib as maya_lib
+import utility.common as common
 
-from src.utility.attribute_utils import Vector
 
-# I talk about this data file in the class docstring.
 JSON_PATH = os.path.join(os.path.dirname(__file__), "shape_points.json")
 
 def get_shape_library():
@@ -95,73 +72,6 @@ class ColorIndex(Enum):
 
 
 class Control(ABC):
-    """
-    Base class for control creation. I used ABC and @abstractmethod to avoid another developer to 
-    instantiate this class and the risk to have an empty create() method or adding a generic circle creation, 
-    which would create a confusion of purpose with the Circle class.
-
-    WHY CLASSES
-        I chose to use a class for control creation because it allows to 
-        encapsulate the management into a single object and simplify its use.
-
-        A FUNCTIONAL approach would look like this:
-            import control_lib as lib
-
-            my_control = pm.nt.Transform("existing_control")
-            my_shape = my_control.getShape()
-            lib.shape_color_index(my_shape, lib.ColorIndex.RED)
-            lib.shape_line_thick(my_shape)
-            lib.shape_move(my_shape, [0, 1, 0])
-            etc...
-        
-        Instead of this, with the CLASS approach, we can do:
-            from control_lib import Control, ColorIndex
-
-            my_control = Circle("existing_control")
-            my_control.shape_color_index(ColorIndex.RED)
-            my_control.shape_line_thick()
-            my_control.shape_move([0, 1, 0])
-
-        I see this approach more intuitive, easier to use and read, and also more maintainable and scalable.
-
-    PARENTING & INHERITANCE
-        Another advantage of this class approach its inheritance and scalability. For example in control creation:
-
-        FUNCTIONAL approach of control creation:
-            #control = lib.create_control(shape="circle", name="my_circle") # Generic approach, with default normal.
-            control = lib.create_circle_control("my_circle")                # Specific approach for circle with default normal.
-            lib.shape_move(my_shape, [0, 1, 0])
-
-            # Changing shape on creation may imply changing the logic.
-            bar_crv, slider_crv = lib.create_slider_control("my_slider", limits=(0, 10)) 
-            lib.shape_move(slider_crv.getShape(), [0, 1, 0])
-            
-        CLASS approach of control creation:
-            control = Circle("my_circle")
-            control.create()
-            control.shape_normal(Vector.Y_POS)
-
-            # Changing the shape doesn't affect the logic, just the class instantiation:
-            slider = Slider("my_slider", limits=(0, 10))
-            slider.create()
-            slider.shape_normal(Vector.Y_POS)
-
-        As every class has the same create(normal=Vector.X_POS) method, classes can be substituted without affecting the logic.
-        
-    EXTENSIBILITY & DATA FILE
-        In the case of creating more control shapes, the class approach allows to easily create new classes for new shapes,
-        inheriting the base functionality and overriding the create() method to create the specific shape or system, just like 
-        the Slider, Osipa and Text shapes which required a more complex creation logic.
-        
-        Also, after the new shape is created, there is no need to memorize the existing shape names from a dictionary,
-        only call to the new class, which the IDE itself can autocomplete.
-
-        In parallel, the implementation of a json data file for storing control shape points, allow to easily add more shapes
-        to the library without the need of coding or importing template files like another maya file, AND keep the code free
-        from hardcoded shape point positions.
-
-
-    """
     suffix = "_ctrl"
 
     def __init__(self, control_name= "control"):
@@ -216,7 +126,7 @@ class Control(ABC):
         if pm.objExists(offset_transform):
             pm.parent(self.transform, offset_transform)
         else:
-            offset = tutils.create_offset(self.transform, offset_name_suffix="_root")
+            offset = maya_lib.create_offset(self.transform, offset_name_suffix="_root")
             offset.rename(offset_transform)
 
     @property
@@ -250,12 +160,12 @@ class Control(ABC):
         return cvs
     
     @abstractmethod            
-    def create(self, normal=Vector.X_POS) -> 'Control':
+    def create(self, normal=common.Vector.X_POS) -> 'Control':
         """ abstraction of control creation. 
         
         Args:
-            name (str, optional): Name of the control to create. Defaults to "control".
-            normal (Vector, optional): Normal vector for the control shape orientation. Defaults to Vector.X_POS.
+            name: Name of the control to create. Defaults to "control".
+            normal: Normal vector for the control shape orientation. Defaults to common.Vector.X_POS.
         Returns:
             Control: Self control instance.
         """
@@ -343,7 +253,7 @@ class Control(ABC):
             Change control color according to the value in color index.
 
         Args:
-            color (ColorIndex): Color index to apply to the control.
+            color: Color index to apply to the control.
 
         Returns:
             Control: Self control instance.
@@ -369,29 +279,29 @@ class Control(ABC):
         copy = self.transform.duplicate(n=copy_name)[0]
         pm.parent(copy, w=True)
 
-        if tutils.has_children(copy):
+        if maya_lib.has_children(copy):
             pm.delete(copy.getChildren(type="transform"))
         
         return self.__class__(copy)
 
     def mirror(self):
         copy = self.copy()
-        tutils.flip_transform(copy.transform)
+        maya_lib.flip_transform(copy.transform)
         return self.__class__(copy)
 
     def align_to(self, parent: pm.nt.Transform) -> 'Control':
         """Move control transform to the given transform's node location
 
         Args:
-            parent (pm.nt.Transform): Transform node to align the control to.
+            parent: Transform node to align the control to.
 
         Returns:
             Control: Self control instance.
         """
         if self.offset:
-            tutils.align_transform(parent, self.offset)
+            maya_lib.align_transform(parent, self.offset)
         else:
-            tutils.align_transform(parent, self.transform)
+            maya_lib.align_transform(parent, self.transform)
         return self
 
     def create_offset(self, suffix="_offset") -> 'Control':
@@ -401,19 +311,19 @@ class Control(ABC):
     def reset(self) -> 'Control':
         """Restore default values on every keyable attribute on control."""
         attributes = self.transform.listAttr(keyable=True)
-        [autils.reset_attribute(attr) for attr in attributes]
+        [maya_lib.reset_attribute(attr) for attr in attributes]
         return self
 
     def lock_channels(self, *channels: str) -> 'Control':
         """Lock and hide the given channels on the control transform.
 
         Args:
-            channels (list[str]): Name of channels to lock on control. E.g: "t", "rx", etc.
+            channels: Name of channels to lock on control. E.g: "t", "rx", etc.
         """
         for attr in channels:
             if not self.transform.hasAttr(attr): continue
             attribute_node = self.transform.attr(attr)
-            autils.lock_and_hide_attribute(attribute_node)
+            maya_lib.lock_and_hide_attribute(attribute_node)
         return self
 
 
@@ -609,7 +519,7 @@ class Text(Control):
         self.shapes = text_characters
         
         self.shape_orient([0, 90, 0])
-        pivot_vector = tutils.get_center_pivot(self.transform)
+        pivot_vector = maya_lib.get_center_pivot(self.transform)
         pos_vector   = self.transform.getTranslation(space="world")
         new_pos = pos_vector - pivot_vector
         self.shape_move(new_pos)

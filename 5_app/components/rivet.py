@@ -3,7 +3,7 @@
 Author: Francisco Guzmán
 
 Content: Rigging module to pin a transform to a surface or create a sliding follicle over a mesh or nurbs surface.
-Dependency: pymel.core, src.utility.inspect_utils
+Dependency: pymel.core, utility.common
 Maya Version tested: 2024
 
 How to:
@@ -14,11 +14,9 @@ How to:
 TODO: IMPLEMENT.
 ################################################################################################################
 '''
-
-
 import pymel.core as pm
+import utility.common as common
 
-import src.utility.inspect_utils as inspect_utils
 
 def create_follicle(name: str) -> pm.nt.Transform:
     """Follicle creation.
@@ -133,13 +131,13 @@ def create_rivet(surface: pm.PyNode, transform: pm.nt.Transform, is_orbital=Fals
         pm.nt.Transform: The follicle transform created.
     """
     
-    surface_shape = surface if not inspect_utils.is_transform(surface) else surface.getShape()
+    surface_shape = surface if not common.is_transform(surface) else surface.getShape()
 
     # Create closest point node depending on the surface type, create a closestPointOnSurface or closestPointOnMesh.
     closest = None
-    if inspect_utils.is_nurbs_surface(surface):
+    if common.is_nurbs_surface(surface):
         closest = create_closesPointOnSurface(transform=transform, surface=surface_shape, floating_follicle=maintain_offset)
-    elif inspect_utils.is_mesh(surface):
+    elif common.is_mesh(surface):
         closest = create_closestPointOnMesh(transform=transform, mesh=surface_shape, floating_follicle=maintain_offset)
     else:
         pm.error("Surface must be a NURBS surface or a Mesh.")

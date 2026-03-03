@@ -16,10 +16,12 @@ TODO: IMPLEMENT.
 
 
 import pymel.core as pm
-from src.core.control_lib import Circle, Vector
-from src.utility.transform_utils import is_ancestor
+import core.framework as framework
+import core.control_framework as control_lib
+import utility.maya_lib as maya_lib
 
-class Limb(RigModule):
+
+class Limb(framework.RigModule):
     def create_joints(self, quantity=5):
         parent = None
         length = len(str(quantity + 1)) + 1
@@ -38,7 +40,7 @@ class FK(Limb):
         super().__init__(name)
         self.joints = joints
 
-    def create_controls(self, references: pm.nt.Transform, normal: Vector, use_offset: bool) -> list[Control]:
+    def create_controls(self, references: pm.nt.Transform, normal: control_lib.Vector, use_offset: bool) -> list[control_lib.Control]:
         control_suffix = "_ctrl"
 
         # Sort objects by hierarchy depth.
@@ -49,7 +51,7 @@ class FK(Limb):
 
             # Control creation.
             control_name = f"{obj}{control_suffix}"
-            control = Circle()
+            control = control_lib.Circle()
             control.create(name=control_name, normal=normal)
             control.align_to(obj)
 
@@ -57,7 +59,7 @@ class FK(Limb):
             if obj_index > 0:
                 parent_object_name = f"{objects[obj_index-1]}"
                 parent_object = pm.nt.Transform(parent_object_name)
-                if not is_ancestor(parent_object, obj):
+                if not maya_lib.is_ancestor(parent_object, obj):
                     continue
                 
                 control.parent_to(parent_object_name)
@@ -72,13 +74,13 @@ class FK(Limb):
         controls = []
         for joint in self.joints:
             ###     MAIN CONTROL.
-            control = Circle(joint.name(), normal=[1, 0, 0], reference=joint)
+            control = control_lib.Circle(joint.name(), normal=[1, 0, 0], reference=joint)
             control.create()
             control.constrain(target=joint)
             controls.append(control)
 
             """###     DETAIL CONTROL.
-            detail = Circle(f"{joint.name()}_detail", normal=[1,0,0], reference=control.transform, scale=[.8,.8,.8])
+            detail = control_lib.Circle(f"{joint.name()}_detail", normal=[1,0,0], reference=control.transform, scale=[.8,.8,.8])
             detail.create()
             detail.constrain(target=joint)
             pm.parent(detail.transform, control.transform)"""
@@ -119,7 +121,7 @@ class IK(Limb):
         distance = start.getTranslation(ws=True).distanceTo(end.getTranslation(ws=True))
         pole.ty.set(distance)
 
-        control = Circle(f"{self.name}_poleVector", [0, 1, 0], pole, [.3, .3, .3])
+        control = control_lib.Circle(f"{self.name}_poleVector", [0, 1, 0], pole, [.3, .3, .3])
         control.create()
         pm.delete(locator, locator_2, pole)
         return control
@@ -135,8 +137,8 @@ class IK(Limb):
         pm.poleVectorConstraint(poleVector.transform, ikHandle)
 
         ###     CREATE CONTROLS     ###
-        control_root = Circle(self.joints[0], reference=self.joints[0], is_constrained=True)
-        control_leaf = Circle(self.joints[-1], reference=self.joints[-1], is_constrained=False)
+        control_root = control_lib.Circle(self.joints[0], reference=self.joints[0], is_constrained=True)
+        control_leaf = control_lib.Circle(self.joints[-1], reference=self.joints[-1], is_constrained=False)
 
         control_root.create()
         control_leaf.create()
@@ -208,7 +210,7 @@ class IkSpline(Limb):
         drivers = []
         cvs = pm.ls(self.curve + ".cv[*]", fl=True)
         for cv in cvs:
-            control = Circle(self.name, normal=[1, 0, 0])
+            control = control_lib.Circle(self.name, normal=[1, 0, 0])
             control.create()
             pos = pm.xform(cv, q=True, t=True, ws=True)
             pm.xform(control.transform, t=pos, ws=True)

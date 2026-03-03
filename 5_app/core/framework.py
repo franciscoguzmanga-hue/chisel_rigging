@@ -2,50 +2,33 @@
 ################################################################################################################
 Author: Francisco Guzmán
 
-Content: Core classes and functions for rigging modules.
+Content: Framework for rigging systems and functions.
 Dependency: pymel.core, src.utility.transform_utils
 Maya Version tested: 2024
 
 How to:
-    - Use: Instructions to use the module
-    - Test: Instructions to test the module
+    - Use: 
+        - Use Rig class to create the main rig structure and register modules to it.
+        - Use RigModule as a base class to create rig modules.
+    
 ################################################################################################################
 '''
 
 from enum import Enum
-
 import pymel.core as pm
+import utility.maya_lib as maya_lib
 
-from src.utility.transform_utils import get_or_create_transform
 
-
-# Enum classes for display layer settings and status.
 class DisplayType(Enum):
     NORMAL = 0
     REFERENCE = 1
     TEMPLATE = 2
 
+
 class Status(Enum):
     OFF = 0
     ON = 1
 
-
-def get_or_create_set(set_name: str,*members: pm.PyNode) -> pm.nt.ObjectSet:
-    """ Add nodes to main rig set and creates it if it doesn't exist.
-
-    Returns:
-        pm.nt.ObjectSet: The rig set with the new members added.
-    """
-    rig_set = None
-    if pm.objExists(set_name):
-        rig_set = pm.nt.ObjectSet(set_name) 
-    else:
-        rig_set = pm.nt.ObjectSet(n=set_name)
-    
-    if members:
-        [rig_set.addMember(obj) for obj in members]
-
-    return rig_set
 
 class Rig:
     # Constants for naming conventions and group names.
@@ -75,18 +58,17 @@ class Rig:
 
     def create_structure(self):
         # 1. Root
-        self.grp_root = get_or_create_transform(self.root_name, None)
+        self.grp_root = maya_lib.get_or_create_transform(self.root_name, None)
 
         # 2. Main groups
-        self.grp_geo          = get_or_create_transform(self.GRP_GEO, self.grp_root)
-        self.grp_modules      = get_or_create_transform(self.GRP_MODULES, self.grp_root)
-
+        self.grp_geo          = maya_lib.get_or_create_transform(self.GRP_GEO, self.grp_root)
+        self.grp_modules      = maya_lib.get_or_create_transform(self.GRP_MODULES, self.grp_root)
         # 3. Sub groups
-        self.grp_vis          = get_or_create_transform(self.GRP_VIS, self.grp_modules)
-        self.grp_hid          = get_or_create_transform(self.GRP_HID, self.grp_modules)
+        self.grp_vis          = maya_lib.get_or_create_transform(self.GRP_VIS, self.grp_modules)
+        self.grp_hid          = maya_lib.get_or_create_transform(self.GRP_HID, self.grp_modules)
 
         # 4. Sets
-        self.set = get_or_create_set(self.set_name)
+        self.set = maya_lib.get_or_create_set(self.set_name)
 
     def _create_display_layer(self, name: str, 
                        display_type: DisplayType, 
@@ -95,11 +77,11 @@ class Rig:
                        *members: pm.PyNode) -> pm.nt.DisplayLayer:
         """Create a display layer ste it up and add given members to it.
         Args:
-            name (str): Name of the display layer to create.
-            display_type (DisplayType): Display type for the display layer.
-            visibility (Status): Visibility status for the display layer.
-            playback_vis (Status): Playback visibility status for the display layer.
-            members (pm.PyNode): Nodes to add to the display layer.
+            name: Name of the display layer to create.
+            display_type: Display type for the display layer.
+            visibility: Visibility status for the display layer.
+            playback_vis: Playback visibility status for the display layer.
+            members: Nodes to add to the display layer.
 
         Returns:
             pm.nt.DisplayLayer: The created display layer.
@@ -206,59 +188,59 @@ class RigModule:
         self.deformers = []
         self.systems = []
 
-    def create_structure(self) -> None:
+    def create_structure(self):
         # 1. Root
-        self.grp_root = get_or_create_transform(self.root_name, None)
+        self.grp_root = maya_lib.get_or_create_transform(self.root_name, None)
 
         # 2. Sub groups
-        self.grp_vis = get_or_create_transform(self.name_vis_grp, self.grp_root)
-        self.grp_hid = get_or_create_transform(self.name_hid_grp, self.grp_root)
+        self.grp_vis = maya_lib.get_or_create_transform(self.name_vis_grp, self.grp_root)
+        self.grp_hid = maya_lib.get_or_create_transform(self.name_hid_grp, self.grp_root)
         self.grp_hid.it.set(0)
         self.grp_hid.v.set(0)
 
         # 3. Create sets
-        self.root_set = get_or_create_set(self.name_set)
+        self.root_set = maya_lib.get_or_create_set(self.name_set)
 
     def register_sub_system(self, system_grp, visible=True):
         """Register sub-system group to the module in the correct hierarchy.
          Args:
-            system_grp (pm.PyNode): Sub-system root group to register.
-            visible (bool, optional): Whether the sub-system should be registered as visible or hidden. Defaults to True.
+            system_grp : Sub-system root group to register.
+            visible: Whether the sub-system should be registered as visible or hidden. Defaults to True.
         """
         parent = self.grp_vis if visible else self.grp_hid
         self.systems.append(system_grp)
         pm.parent(system_grp, parent)
 
-    def register_controls(self, *controls: pm.PyNode) -> None:
+    def register_controls(self, *controls: pm.PyNode):
         """Add controls to correct attribute and assign it to the module's control set.
         
         Args:
-            controls (pm.PyNode): Control nodes to register.
+            controls: Control nodes to register.
         """
         [self.controls.append(control) for control in controls if control not in self.controls]
-        self.control_set = get_or_create_set(self.control_set_name)
+        self.control_set = maya_lib.get_or_create_set(self.control_set_name)
         [self.control_set.addMember(control) for control in controls]
         self.root_set.addMember(self.control_set)
 
-    def register_joints(self, *joints: pm.PyNode) -> None:
+    def register_joints(self, *joints: pm.PyNode):
         """Add joints to correct attribute and assign it to the module's joint set.
         
         Args:
-            joints (pm.PyNode): Joint nodes to register.
+            joints: Joint nodes to register.
         """
         [self.joints.append(joint) for joint in joints if joint not in self.joints]
-        self.joint_set = get_or_create_set(self.joint_set_name)
+        self.joint_set = maya_lib.get_or_create_set(self.joint_set_name)
         [self.joint_set.addMember(joint) for joint in joints]
         self.root_set.addMember(self.joint_set)
 
-    def register_deformers(self, *deformers: pm.PyNode) -> None:
+    def register_deformers(self, *deformers: pm.PyNode):
         """Add deformers to correct attribute and assign it to the module's deformer set.
         
         Args:
-            deformers (pm.PyNode): Deformer nodes to register.
+            deformers: Deformer nodes to register.
         """
         [self.deformers.append(deformer) for deformer in deformers if deformer not in self.deformers]
-        self.deformer_set = get_or_create_set(self.deformer_set_name)
+        self.deformer_set = maya_lib.get_or_create_set(self.deformer_set_name)
         [self.deformer_set.addMember(deformer) for deformer in deformers]
         self.root_set.addMember(self.deformer_set)
         
@@ -267,10 +249,10 @@ class RigModule:
          module to the main rig using constraints.
         
         Args:            
-            anchor_node (pm.nt.Transform): Transform node to anchor the module to.
+            anchor_node: Transform node to anchor the module to.
         
         Returns:            
-            list[pm.nt.Constraint]: List of the created constraints.
+            List of the created constraints.
         """
         parent_constraint = pm.parentConstraint(anchor_node, self.grp_root, mo=True)
         scale_constraint = pm.scaleConstraint(anchor_node, self.grp_root, mo=True)
@@ -288,7 +270,7 @@ class RigModule:
                     pm.objExists(self.name_set),
                     ])
 
-    def cast(self) -> None:
+    def cast(self):
         """Cast the current group to a RigModule by checking if the rig module structure exists 
         in the given namespace and assigning the corresponding groups and sets to the instance variables."""
         if not self.is_module():
@@ -310,5 +292,5 @@ class RigModule:
             self.deformer_set = pm.nt.ObjectSet(self.deformer_set_name)
             self.deformers = self.deformer_set.members()
 
-    def build(self) -> None:
+    def build(self):
         self.create_structure()

@@ -16,7 +16,7 @@ How to:
 import importlib
 import pymel.core as pm
 
-import src.rigging_modules.ribbon as ribbon_module
+import components.ribbon as ribbon_module
 importlib.reload(ribbon_module)
 
 from src.rigging_modules.ribbon import Surface, SurfaceOrient, Ribbon

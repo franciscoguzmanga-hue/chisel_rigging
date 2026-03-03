@@ -21,10 +21,11 @@ How to:
 
 import pymel.core as pm
 
-from src.core.control_lib import Circle
-from src.core.module_core import RigModule
-from src.utility.inspect_utils import is_nurbs_surface
-from src.utility.transform_utils import align_transform, freeze_transform, reset_transform
+import core.framework as framework
+import core.control_framework as control_lib
+import utility.common as common
+import utility.maya_lib as maya_lib
+
 
 class SurfaceOrient:
     # Vectors to create curves to use as base fot a surface with loft.
@@ -45,7 +46,7 @@ class Surface:
     def cast(self):
         if pm.objExists(self.name):
             self.transform = pm.nt.Transform(self.name)
-            if is_nurbs_surface(self.transform):
+            if common.is_nurbs_surface(self.transform):
                 self.shape = self.transform.getShape()
                 self.spans = self.transform.numSpansInU()
         else:
@@ -56,8 +57,8 @@ class Surface:
         """Creates a perpendicular line curve to use as proxy to later create a Surface using Loft.
 
         Args:
-            width (float, optional): Width of the curve. Defaults to 1.0.
-            normal (SurfaceOrient, optional): Normal vector to orient the curve. Defaults to SurfaceOrient.Y_UP.
+            width: Width of the curve. Defaults to 1.0.
+            normal: Normal vector to orient the curve. Defaults to SurfaceOrient.Y_UP.
         Returns:
             pm.nt.Transform: The created curve transform.
         """        
@@ -69,9 +70,9 @@ class Surface:
         """Create a nurbs surface along a transform list selection.
 
         Args:
-            joints (list[pm.nt.Transform]): List of transforms to create the surface along.
-            width (float, optional): Width of the surface. Defaults to 1.0.
-            normal (list, optional): Normal vector for the surface orientation. Defaults to [0, 1, 0].
+            joints: List of transforms to create the surface along.
+            width: Width of the surface. Defaults to 1.0.
+            normal: Normal vector for the surface orientation. Defaults to [0, 1, 0].
 
         Returns:
             pm.nt.Transform: The created nurbs surface transform.
@@ -94,22 +95,22 @@ class Surface:
         """Rebuild surface to have the required spans.
 
         Args:
-            spans (int): Number of spans in U direction for the surface.
+            spans: Number of spans in U direction for the surface.
         """
         pm.rebuildSurface(self.transform, du=3, dir=0, su=spans)
         pm.select(self.transform)
         pm.mel.eval('doBakeNonDefHistory( 1, {"prePost" });')
         pm.delete(self.transform, ch=True)
 
-class Ribbon(RigModule):
+class Ribbon(framework.RigModule):
     def __init__(self, name:str, surface: pm.nt.Transform, section_joints: int, ctrl_quantity: int):
         """Class to generate a ribbon rig module.
 
         Args:
-            name (str): Name of the module.
-            surface (pm.nt.Transform): Surface to us as base for the ribbon. Must be a nurbs surface's transform.
-            section_joints (int): number of joints to put inside each span section of the surface. If 0, it will only create joints in the spans.
-            ctrl_quantity (int): number of control objects to create. If 0, it will create a control for each span.
+            name: Name of the module.
+            surface: Surface to us as base for the ribbon. Must be a nurbs surface's transform.
+            section_joints: number of joints to put inside each span section of the surface. If 0, it will only create joints in the spans.
+            ctrl_quantity: number of control objects to create. If 0, it will create a control for each span.
         """
         super().__init__(name)
 
@@ -141,14 +142,6 @@ class Ribbon(RigModule):
                             driver_B: pm.nt.Transform, 
                             driven_transform: pm.nt.Transform) -> tuple[pm.nt.DistanceBetween, pm.nt.MultiplyDivide]:
         """Creates a setup to scale driven based on the distance between driver_A and driver_B
-
-        Args:
-            driver_A (pm.nt.Transform): _description_
-            driver_B (pm.nt.Transform): _description_
-            driven_transform (pm.nt.Transform): _description_
-
-        Returns:
-            _type_: _description_
         """
         distance_node = pm.createNode("distanceBetween", n=f"{driven_transform.name()}_distance")
         driver_A.worldMatrix >> distance_node.inMatrix1
@@ -207,10 +200,10 @@ class Ribbon(RigModule):
         """Creation of joints that will drive the surface movement.
 
         Args:
-            driver_quantity (int): Number of driver joints to create.
+            driver_quantity: Number of driver joints to create.
 
         Returns:
-            list[pm.nt.Joint]: List of created driver joints.
+            List of created driver joints.
         """
         #Drivers root group.
         driver_root = pm.group(em=True, n=f"{self.name}_drivers")
@@ -227,8 +220,8 @@ class Ribbon(RigModule):
             name = f"{self.name}_{str(index).zfill(3)}_drv"
             driver = pm.joint(None, radius=2.0, n=name)
             
-            align_transform(master_transform=fol_temp, slave_transform=driver)
-            freeze_transform(driver)
+            maya_lib.align_transform(master_transform=fol_temp, slave_transform=driver)
+            maya_lib.freeze_transform(driver)
             pm.parent(driver, driver_root)
             
             drivers.append(driver)            
@@ -248,7 +241,7 @@ class Ribbon(RigModule):
         
         for driver in drivers:
             name = f"{driver.name()[:-4]}_ctrl"
-            control = Circle(control_name=name)
+            control = control_lib.Circle(control_name=name)
             control.create(normal=[1, 0, 0])
             control.align_to(parent=driver)
             control.create_offset(suffix="_root")

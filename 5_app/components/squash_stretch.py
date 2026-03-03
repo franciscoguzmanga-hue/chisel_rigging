@@ -31,13 +31,11 @@ How to:
 
 import pymel.core as pm
 
-from src.core.control_lib import Sphere, Circle, ColorIndex
-from src.core.module_core import RigModule
-from src.utility.maya_nodes_utils import create_multiplyDivide_node
-from src.utility.transform_utils import create_offset
+import core.framework as framework
+import core.control_framework as control_lib
+import utility.maya_lib as maya_lib
 
-
-class SquashStretch(RigModule):
+class SquashStretch(framework.RigModule):
     def __init__(self, name, *components):
         super().__init__(name)
         self.components = components
@@ -57,7 +55,7 @@ class SquashStretch(RigModule):
         point_A.t >> distance_node.point1
         point_B.t >> distance_node.point2
 
-        stretch_ratio = create_multiplyDivide_node(distance_node.distance.get(), 
+        stretch_ratio = maya_lib.create_multiplyDivide_node(distance_node.distance.get(), 
                                                    "/", 
                                                    distance_node.distance,
                                                    name= f"{self.name}_stretch_ratio")
@@ -115,20 +113,20 @@ class SquashStretch(RigModule):
         self.register_sub_system(clusters_grp, visible=False)
         return clusters
 
-    def create_controls(self, clusters: list[pm.nt.Cluster]) -> list[Sphere]:
+    def create_controls(self, clusters: list[pm.nt.Cluster]) -> list[control_lib.Sphere]:
         """Creation of controls to drive clusters.
 
         Args:
             clusters (list[pm.nt.Cluster]): List of cluster nodes to create controls for.
 
         Returns:
-            list[Sphere]: List of control objects created to drive the clusters.
+            list[control_lib.Sphere]: List of control objects created to drive the clusters.
         """
         controls = []
         for cluster in clusters:
             raw_name = cluster.name().replace("_cls", "") 
             name = f"{raw_name}_ctrl"
-            control = Sphere(name)
+            control = control_lib.Sphere(name)
             control.create()
             control.align_to(cluster)            
             
@@ -149,13 +147,13 @@ class SquashStretch(RigModule):
         Returns:
             pm.nt.Transform: The main control transform node.
         """
-        main_control = Circle(f"{self.name}_main_ctrl")
+        main_control = control_lib.Circle(f"{self.name}_main_ctrl")
         main_control.create(normal=[0, 1, 0])
         main_control.align_to(reference_position)
         main_control.create_offset("_root")
         main_control.shape_scale([2,2,2])
         main_control.shape_line_thick()
-        main_control.shape_color_index(ColorIndex.YELLOW)
+        main_control.shape_color_index(control_lib.ColorIndex.YELLOW)
         pm.parent(main_control.offset, self.grp_vis)
 
         self.register_controls(main_control.transform)
@@ -170,7 +168,7 @@ class SquashStretch(RigModule):
         lattice_points = [ lattice.pt[:][index][:] for index in range(3) ]
 
         clusters = self.create_clusters(lattice_points)
-        clusters_offset = [ create_offset(cluster, "_root") for cluster in clusters ]
+        clusters_offset = [ maya_lib.create_offset(cluster, "_root") for cluster in clusters ]
         controls = self.create_controls(clusters)
 
         # Main control creation.

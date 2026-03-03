@@ -1,5 +1,5 @@
 
-from ui.main_controller import MainController
+from ui.chisel_controller import MainController
 
 def launch():
     view = None

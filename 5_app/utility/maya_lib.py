@@ -10,7 +10,7 @@ email: francisco.guzmanga@gmail.com
 
 from enum import Enum
 import pymel.core as pm
-import common
+import utility.common as common
 
 
 class Vector(Enum):
@@ -143,6 +143,14 @@ def connect_or_assign_value(value, target_attribute: pm.Attribute):
         value >> current_target
     else:
         current_target.set(value)
+
+def get_input_nodes(transform_node: pm.nt.Transform) -> list[pm.PyNode]:
+    connections = transform_node.inputs(source=True, destination=False)
+    return connections
+
+def get_output_nodes(transform_node: pm.nt.Transform) -> list[pm.PyNode]:
+    connections = transform_node.outputs(source=False, destination=True)
+    return connections
 
 
 ####################################################################################################################################
@@ -415,7 +423,7 @@ def get_center_pivot(transform_node: pm.nt.Transform) -> pm.datatypes.Vector:
     return center_point
 
 
-# Axis visibility funcions
+# Visibility funcions
 def show_axis(transform_node: pm.nt.Transform):
     """ Display the local axis in the viewport. """
     transform_node.displayLocalAxis.set(1)
@@ -428,6 +436,56 @@ def has_visible_axis(transform_node: pm.nt.Transform) -> bool:
     """Ask if the local axis is visible in the viewport."""
     return transform_node.displayLocalAxis.get()
 
+def hide_joint(joint_node: pm.nt.Joint):
+    """Hide the joint shape in the viewport."""
+    attrs = [
+        ["v", 0],
+        ["radius", 0],
+        ["drawStyle", 2],  # 2 for none
+        ["overrideDisplayType", 2]       
+    ]
+
+    for attr in attrs:
+        if not joint_node.hasAttr(attr[0]):
+            continue
+        try:
+            joint_node.overrideEnabled.set(1)
+            joint_node.attr(attr[0]).set(attr[1])
+            break
+        except:
+            continue
+
+def show_joint(joint_node: pm.nt.Joint):
+    """Show the joint shape in the viewport."""
+    attrs = [
+        ["v", 1],
+        ["radius", 1],
+        ["drawStyle", 0],  # 0 for normal
+        ["overrideDisplayType", 0]       
+    ]
+
+    for attr in attrs:
+        if not joint_node.hasAttr(attr[0]):
+            continue
+        try:
+            joint_node.overrideEnabled.set(0)
+            joint_node.attr(attr[0]).set(attr[1])
+            break
+        except:
+            continue
+
+def increase_joint_radius(joint_node: pm.nt.Joint, increment=1):
+    """Increase the joint radius by the given increment."""
+    if joint_node.hasAttr("radius"):
+        current_radius = joint_node.radius.get()
+        joint_node.radius.set(current_radius + increment)
+
+def decrease_joint_radius(joint_node: pm.nt.Joint, decrement=1):
+    """Decrease the joint radius by the given decrement."""
+    if joint_node.hasAttr("radius"):
+        current_radius = joint_node.radius.get()
+        new_radius = max(0, current_radius - decrement)  # Prevent negative radius
+        joint_node.radius.set(new_radius)  
 
 # Hierarchy Functions
 def build_hierarchy_from_list(transform_list: list[pm.nt.Transform]) -> pm.nt.Transform:
@@ -438,8 +496,20 @@ def build_hierarchy_from_list(transform_list: list[pm.nt.Transform]) -> pm.nt.Tr
 
 def is_ancestor(ancestor_transform: pm.nt.Transform, descendant_transform: pm.nt.Transform) -> bool:
     """Check if the ancestor_transform is an ancestor of the descendant_transform."""
-    ancestors = descendant_transform.getAllParents()
+    if not ancestor_transform or not descendant_transform:
+        return False
+    if not isinstance(ancestor_transform, pm.nt.Transform) or not isinstance(descendant_transform, pm.nt.Transform):
+        return False
+    ancestors = pm.nt.Transform(descendant_transform).getAllParents()
     return ancestor_transform in ancestors
+
+def find_first_ancestor(transform_node: pm.nt.Transform, transform_list: list[pm.nt.Transform]) -> pm.nt.Transform:
+    parent_control = None
+    ancestors = list(filter(lambda x: is_ancestor(x, transform_node), transform_list))
+    if ancestors:
+        parent_reference = ancestors[-1]  # Closest ancestor in the selection.
+        parent_control = parent_reference
+    return parent_control
 
 def has_children(transform_node: pm.nt.Transform) -> bool:
     # TODO: Check if the transform has non-shape nodes.
@@ -458,6 +528,15 @@ def create_hierarchy_from_dict(structure: dict, parent: pm.nt.Transform=None):
         transform_node = get_or_create_transform(key, parent)
         if structure[key]:
             create_hierarchy_from_dict(structure[key], transform_node)
+
+def sort_by_hierarchy(transform_list: list[pm.nt.Transform]) -> list[pm.nt.Transform]:
+    """Sort a list of transform nodes by their hierarchy, parents first."""
+    updated_list = set(transform_list)
+
+    if updated_list:
+        updated_list = sorted(updated_list, key= lambda obj: obj.name(long=True))
+        return list(updated_list)
+    return []
 
 # Display Functions
 def set_display_normal(transform_node: pm.nt.Transform):
@@ -485,6 +564,20 @@ def unlock_node(node: pm.PyNode):
 ####################################################################################################################################
 #  NODE CREATION ###################################################################################################################
 ####################################################################################################################################
+
+def create_locator(name="locator") -> pm.nt.Transform:
+    """Create a locator transform node."""
+    locator = pm.spaceLocator(n=name)
+    return locator
+
+def create_joint(name="joint", parent=None) -> pm.nt.Transform:
+    """Create a joint transform node."""
+    joint = pm.joint(parent, n=name)
+    return joint
+
+def create_group(name="group", em=True) -> pm.nt.Transform:
+    group = pm.group(em=em, n=name)
+    return group
 
 def create_condition_node(first_term=0, operation="==", second_term=0, if_true_value=[0, 0, 0], if_false_value=[1, 1, 1], name="condition") -> pm.nt.Condition:
     """
@@ -650,3 +743,14 @@ def create_rivet(name: str, surface: pm.nt.Transform, position_object: pm.nt.Tra
         return follicle
 
 
+####################################################################################################################################
+#  SCENE CLEANING ##################################################################################################################
+####################################################################################################################################
+
+def clean_unused_nodes():
+    """Delete unused nodes in the scene."""
+    pm.mel.eval("MLdeleteUnused;")
+
+def delete_unknown_nodes():
+    """Delete unknown nodes in the scene."""
+    pm.mel.eval("MLdeleteUnknown;")

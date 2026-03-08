@@ -1,0 +1,20 @@
+<RCC>
+  <qresource prefix="controls">
+    <file>text_icon.png</file>
+    <file>semi_circle_icon.png</file>
+    <file>arrow_icon.png</file>
+    <file>button_icon.png</file>
+    <file>circle_icon.png</file>
+    <file>cross_icon.png</file>
+    <file>cube_cn_icon.png</file>
+    <file>cube_fk_icon.png</file>
+    <file>orient_icon.png</file>
+    <file>osipa_icon.png</file>
+    <file>pin_icon.png</file>
+    <file>ring_icon.png</file>
+    <file>slider_icon.png</file>
+    <file>sphere_icon.png</file>
+    <file>square_icon.png</file>
+    <file>triangle_icon.png</file>
+  </qresource>
+</RCC>

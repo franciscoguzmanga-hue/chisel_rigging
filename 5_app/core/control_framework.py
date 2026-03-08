@@ -71,15 +71,17 @@ class ColorIndex(Enum):
     BLACK   = 1
 
 
-class Control(ABC):
+class Control():
     suffix = "_ctrl"
 
-    def __init__(self, control_name= "control"):
-        self._name = control_name
-        self.transform = None
-
-        if control_name and pm.objExists(control_name):
+    def __init__(self, control_name= "_"):
+        if pm.objExists(control_name):
             self.transform = pm.nt.Transform(control_name)
+            self._name = self.transform.name()
+        else:
+            self.transform = None
+            self._name = control_name or "control"
+            
 
     def __str__(self):
         return self.transform.name() if self.transform else ""
@@ -96,6 +98,8 @@ class Control(ABC):
     def name(self, name: str):
         if self.transform and name:
             self.transform.rename(name)
+        if not self.transform:
+            self._name = name
 
     @property
     def shapes(self) -> list[pm.nt.NurbsCurve]:
@@ -108,11 +112,10 @@ class Control(ABC):
         new_shapes = shapes if isinstance(shapes, (list, tuple)) else [shapes]
         
         for shape in new_shapes:
-            cvs = shape.getCVs(space="world")
+            cvs = pm.ls(shape + ".cv[*]", fl=True)
+            matrixes = [pm.xform(cv, q=True, matrix=True, ws=True) for cv in cvs]
             pm.parent(shape, self.transform, s=True, r=True)
-            shape.setCVs(cvs, space="world")
-            shape.updateCurve()
-
+            [pm.xform(cv, matrix=matrix, ws=True) for cv, matrix in zip(cvs, matrixes)]
             shape.rename(f"{self.transform.name()}Shape")
 
     @property
@@ -160,12 +163,12 @@ class Control(ABC):
         return cvs
     
     @abstractmethod            
-    def create(self, normal=common.Vector.X_POS) -> 'Control':
+    def create(self, normal=maya_lib.Vector.X_POS) -> 'Control':
         """ abstraction of control creation. 
         
         Args:
             name: Name of the control to create. Defaults to "control".
-            normal: Normal vector for the control shape orientation. Defaults to common.Vector.X_POS.
+            normal: Normal vector for the control shape orientation. Defaults to maya_lib.Vector.X_POS.
         Returns:
             Control: Self control instance.
         """
@@ -234,16 +237,16 @@ class Control(ABC):
 
     def shape_replace(self, *new_curves: pm.nt.Transform) -> 'Control':
         old_shapes = self.shapes
-        self.shapes = new_curves if isinstance(new_curves, (list, tuple)) else [new_curves]
+        self.shape_combine(*new_curves)
         pm.delete(old_shapes)
         return self
 
     def shape_combine(self, *new_curves: pm.nt.Transform) -> 'Control':
-        self.shapes = new_curves if isinstance(new_curves, (list, tuple)) else [new_curves]
-        for new_curve in new_curves:
-            # delete the new control if it has no hierarchy after shape transfer.
-            if not new_curve.getChildren(type="transform"):
-                pm.delete(new_curve)
+        for curve in new_curves:
+            if isinstance(curve, (list, tuple)):
+                self.shape_combine(*curve)
+                continue
+            self.shapes = curve.getShapes()
 
         return self
     
@@ -274,6 +277,17 @@ class Control(ABC):
         return self
     
     # Transform methods
+    def parent_to(self, parent: pm.nt.Transform) -> 'Control':
+        if not isinstance(parent, pm.nt.Transform):
+            pm.warning(f"Parent object must be a transform node. Given: {parent}")
+            return self
+        
+        if self.offset:
+            pm.parent(self.offset, parent)
+        else:
+            pm.parent(self.transform, parent)
+        return self
+
     def copy(self):
         copy_name = f"{self.name}_copy"
         copy = self.transform.duplicate(n=copy_name)[0]
@@ -298,6 +312,10 @@ class Control(ABC):
         Returns:
             Control: Self control instance.
         """
+        if not isinstance(parent, pm.nt.Transform):
+            pm.warning(f"Reference object must be a transform node. Given: {parent}")
+            return self
+        
         if self.offset:
             maya_lib.align_transform(parent, self.offset)
         else:
@@ -327,141 +345,34 @@ class Control(ABC):
         return self
 
 
-class Circle(Control):
-    def create(self, normal= [1,0,0]) -> 'Control':
-        self._create_curve_from_json("circle")
-        self.shape_normal(normal)
-        return self
-
-
-class SemiCircle(Circle):
-    def create(self, normal=[1, 0, 0]) -> 'Control':
-        self._create_curve_from_json("semi_circle")
-        self.shape_normal(normal)
-        return self
-
-
-class Square(Control):
-    def create(self, normal=[1,0,0]) -> 'Control':
-        self._create_curve_from_json("square")
-        self.shape_normal(normal)
-        return self
-
-
-class Cross(Control):
-    def create(self, normal=[1,0,0]) -> 'Control':
-        self._create_curve_from_json("cross")
-        self.shape_normal(normal)
-        return self
-
-
-class Arrow(Control):
-    def create(self, normal=[1,0,0]) -> 'Control':
-        self._create_curve_from_json("arrow")
-        self.shape_normal(normal)
-        return self
-
-
-class Triangle(Control):
-
-    def create(self, normal=[1,0,0]) -> 'Control':
-        self._create_curve_from_json("triangle")
-        self.shape_normal(normal)
-        return self
-
-
-class Pin(Control):
-    def create(self, normal=[1,0,0])-> 'Control':
-        self._create_curve_from_json("pin")
-        self.shape_normal(normal)
-        return self
-
-
-class PinDouble(Control):
-    def create(self, normal=[1,0,0]) -> 'Control':
-        self._create_curve_from_json("pin_double")
-        self.shape_normal(normal)
-        return self
-
-
-class Sphere(Control):
-    def create(self, normal=[1,0,0]) -> 'Control':
-        self._create_curve_from_json("sphere")        
-        self.shape_normal(normal)
-        return self
-
-
-class Button(Control):
-    def create(self, normal=[1,0,0]) -> 'Control':
-        self._create_curve_from_json("button")
-        self.shape_normal(normal)
-        return self
-
-
-class Orient(Control):
-    def create(self, normal=[1,0,0]) -> 'Control':
-        self._create_curve_from_json("orient_3d")
-        self.shape_normal(normal)
-        return self
-
-
-class Cube(Control):
-    def create(self, normal=[1,0,0]) -> 'Control':
-        self._create_curve_from_json("cube_center")
-        self.shape_normal(normal)
-        return self
-
-
-class CubeFK(Control):
-    def create(self, normal=[1,0,0])-> 'Control':
-        self._create_curve_from_json("cube_fk")
-        self.shape_normal(normal)
-        return self
-
-
-class Gear(Control):
-    def create(self, normal=[1,0,0]) -> 'Control':
-        self._create_curve_from_json("gear")
-        self.shape_normal(normal)
-        return self
-
-
-class Ring(Control):
-    def create(self, normal=[1,0,0])-> 'Control':
-        self._create_curve_from_json("ring")
-        self.shape_normal(normal)
-        return self
-
-
-class Pyramid(Control):
-    def create(self, normal=[1,0,0]) -> 'Control':
-        self._create_curve_from_json("pyramid")
-        self.shape_normal(normal)
-        return self
-
-
-class Bar(Control):
-    def create(self, normal=[1,0,0]) -> 'Control':
-        self._create_curve_from_json("bar")
-        self.shape_normal(normal)
-        return self
-
 class Slider(Control):
-    def __init__(self, control_name="control", limits=(0, 1)):
+    def __init__(self, control_name="_", limits=(0, 1)):
         super().__init__(control_name)
         self.limits = limits
 
+    @property
+    def name(self):
+        return super().name
+    
+    @name.setter
+    def name(self, value):
+        if self.offset:
+            self.offset.rename(f"{value}_bar")
+        value = f"{value}_slider" if not value.endswith("_slider") else value
+        Control.name.fset(self, value)
+
     def create(self, normal= [1,0,0])-> 'Control':
         bar_curve = pm.curve(p=[(0, self.limits[0], 0), (0, self.limits[1], 0)], d=1)
-        bar = Bar(bar_curve)
+        bar = Control(control_name= bar_curve)
+        #bar = create_control(Shapes.BAR, f"{self._name}_bar", normal)
         bar.shape_normal(normal)
         bar.name = f"{self._name}_bar"
         bar.shape_line_thick()
         bar.shapes[0].overrideEnabled.set(1)
         bar.shapes[0].overrideDisplayType.set(2)
-        
 
-        circle = Circle(f"{self._name}_slider").create()
+        circle = create_control(Shapes.CIRCLE, f"{self._name}", normal)
+        circle.name = f"{self._name}_slider"
         circle.shape_normal(normal)
         circle.shape_scale([.2, .2, .2])
         circle.lock_channels("tx", "tz", "r", "s", "v")
@@ -471,7 +382,7 @@ class Slider(Control):
 
         self.transform = circle.transform
         self.offset = bar.transform
-        
+                
         return self
 
     def shape_normal(self, normal=(1,0,0)) -> 'Control':
@@ -479,7 +390,19 @@ class Slider(Control):
         pm.xform(self.offset, r=True, ws=False, ro=normal_vector)
         return self
 
+
 class Osipa(Control):
+    @property
+    def name(self):
+        return super().name
+    
+    @name.setter
+    def name(self, value):
+        if self.offset:
+            self.offset.rename(f"{value}_frame")
+        value = f"{value}_slider" if not value.endswith("_slider") else value
+        Control.name.fset(self, value)
+
     def create(self, normal=[1,0,0]) -> 'Control':
         frame  = Square(f"{self._name}_frame").create()
         frame.shape_normal(normal)
@@ -498,7 +421,6 @@ class Osipa(Control):
 
         self.transform = slider.transform
         self.offset = frame.transform
-        
         return self
 
     def shape_normal(self, normal=(1,0,0)) -> 'Control':
@@ -506,10 +428,13 @@ class Osipa(Control):
         pm.xform(self.offset, r=True, ws=False, ro=normal_vector)
         return self
 
+
 class Text(Control):
-    def __init__(self, control_name="control", text="curve"):
+    def __init__(self, control_name="_", text="curve"):
         super().__init__(control_name= control_name)
         self.text = text
+
+
 
     def create(self, normal=[1,0,0]) -> 'Control':
         text_curve = pm.nt.Transform(pm.textCurves(f='Times-Roman', t= self.text, ch=False, name=self.name)[0])
@@ -528,4 +453,55 @@ class Text(Control):
 
         self.shape_normal(normal)
         return self
+
+
+class Shapes(Enum):
+    CIRCLE      = "circle"
+    SEMI_CIRCLE = "semi_circle"
+    SQUARE      = "square"
+    CROSS       = "cross"
+    ARROW       = "arrow"
+    TRIANGLE    = "triangle"
+    PIN         = "pin"
+    PIN_DOUBLE  = "pin_double"
+    SPHERE      = "sphere"
+    BUTTON      = "button"
+    ORIENT_3D   = "orient_3d"
+    CUBE_CN     = "cube_center"
+    CUBE_FK     = "cube_fk"
+    GEAR        = "gear"
+    RING        = "ring"
+    PYRAMID     = "pyramid"
+    BAR         = "bar"
+
+    OSIPA  = "osipa"
+    SLIDER = "slider"
+    TEXT   = "text"
+
+
+
+def create_control(control_type: Shapes, control_name:str="", normal=[1,0,0], text="") -> Control:
+    print("####   ", control_type, control_name)
+    if not isinstance(control_type, Shapes):
+        pm.warning(f"Control type '{control_type}' not recognized.")
+        return None
+    
+    control = None
+    if control_type == Shapes.TEXT:
+        text = text if text else control_name
+        control = Text(text=text).create(normal)
+    
+    elif control_type == Shapes.OSIPA:
+        control = Osipa().create(normal)
+    
+    elif control_type == Shapes.SLIDER:
+        control = Slider().create(normal)
+    
+    else:
+        control = Control()
+        control._create_curve_from_json(control_type.value)
+        control.shape_normal(normal)
+    
+    control.name = control_name
+    return control
 

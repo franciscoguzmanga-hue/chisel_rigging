@@ -8,8 +8,8 @@ Email: francisco.guzmanga@gmail.com
 '''
 
 import pymel.core as pm
-import common
-
+import utility.common as common
+import utility.mesh_lib as mesh_lib
 
 # Mesh Interaction Functions
 def orient_to_mesh_surface(mesh_transform: pm.nt.Transform, transform_node: pm.nt.Transform):
@@ -78,14 +78,14 @@ def check_symmetry(mesh: pm.nt.Mesh, axis="x", tolerance=0.001) -> bool:
             asymmetric_vertices.append(vtx)
     return asymmetric_vertices
 
-def check_non_manifold_geometry(mesh_transform: pm.nt.Transform) -> list[pm.nt.Edge]:
+def check_non_manifold_geometry(mesh_transform: pm.nt.Transform) -> list[pm.MeshEdge]:
     """Check for non-manifold edges in the given mesh."""
     if not common.is_mesh(mesh_transform): return []
     mesh = mesh_transform.getShape()
     non_manifold_edges = mesh.getNonManifoldEdges()
     return non_manifold_edges
 
-def check_n_gons(mesh_transform: pm.nt.Transform) -> list[pm.nt.Face]:
+def check_n_gons(mesh_transform: pm.nt.Transform) -> list[pm.MeshFace]:
     """Check for n-gon faces in the given mesh."""
     if not common.is_mesh(mesh_transform): return []
     mesh = mesh_transform.getShape()
@@ -96,7 +96,7 @@ def check_n_gons(mesh_transform: pm.nt.Transform) -> list[pm.nt.Face]:
             n_gon_faces.append(face)
     return n_gon_faces
 
-def check_zero_area_faces(mesh: pm.nt.Mesh, threshold=0.0001) -> list[pm.nt.Face]:
+def check_zero_area_faces(mesh: pm.nt.Mesh, threshold=0.0001) -> list[pm.MeshFace]:
     """Check for faces with zero or near-zero area in the given mesh."""
     zero_area_faces = []
     for face in mesh.f:
@@ -105,6 +105,13 @@ def check_zero_area_faces(mesh: pm.nt.Mesh, threshold=0.0001) -> list[pm.nt.Face
             zero_area_faces.append(face)
     return zero_area_faces
 
+def get_render_shape(mesh_transform: pm.nt.Transform) -> pm.nt.Shape:
+    """Get the render shape of a mesh transform, which is the shape that is visible in the viewport and renders."""
+    shapes = mesh_transform.getShapes()
+    for shape in shapes:
+        if not shape.intermediateObject.get():
+            return shape
+    return None
 
 # Intermediate Shape Functions
 def get_intermediate_shapes(mesh_transform: pm.nt.Transform) -> list[pm.nt.Shape]:
@@ -130,7 +137,7 @@ def get_all_deformer_nodes(transform_node: pm.nt.Transform) -> list:
 
 
 # SkinCluster Utility Functions
-def get_skin_cluster_nodes(mesh: pm.nt.Transform) -> list[pm.nt.SkinCluster]:
+def get_skin_cluster_nodes(mesh: pm.nt.Mesh) -> list[pm.nt.SkinCluster]:
     """Get skin cluster nodes from surface or geometry or any node with a skin cluster in its history."""
     skin_clusters = pm.listConnections(mesh, type="skinCluster")
     return skin_clusters or []
@@ -194,12 +201,13 @@ def copy_skin_weights(source_mesh: pm.nt.Mesh, target_mesh: pm.nt.Mesh, is_add_w
 # BlendShape Utility Functions
 def get_blend_shape_nodes(transform: pm.nt.Transform) -> list[pm.nt.BlendShape]:
     """Get blend shape nodes from surface or geometry."""
-    blend_shapes = pm.listConnections(transform, type="blendShape")
-    return blend_shapes or []
+    shape = mesh_lib.get_render_shape(transform)
+    blend_shapes = filter(lambda x: isinstance(x, pm.nt.BlendShape), shape.listHistory())
+    return list(blend_shapes) or []
 
 def get_blend_shape_targets(blend_shape_node: pm.nt.BlendShape) -> list[pm.nt.Transform]:
     """Get blend shape target nodes from a blend shape node."""
-    target_aliases = blend_shape_node.getTargetAliasList()
+    target_aliases = blend_shape_node.inputTarget.inputs()
     return target_aliases or []
 
 def add_blend_shape_target(blend_shape_node: pm.nt.BlendShape, target_mesh: pm.nt.Mesh, target_name: str):

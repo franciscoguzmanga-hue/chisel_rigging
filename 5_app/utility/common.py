@@ -180,6 +180,8 @@ def is_type(node: pm.PyNode, node_type: pm.PyNode) -> bool:
 def is_vector(node: pm.PyNode) -> bool:
     return isinstance(node, pm.datatypes.Vector)
 
+def is_component(node: pm.PyNode) -> bool:
+    return isinstance(node, pm.Component)
 
 ####################################################################################################################################
 #  FILTERING FUNCTIONS  ############################################################################################################

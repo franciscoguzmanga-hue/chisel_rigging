@@ -19,6 +19,7 @@ import pymel.core as pm
 import core.framework as framework
 import core.control_framework as control_lib
 import utility.maya_lib as maya_lib
+from components.ribbon import Ribbon
 
 
 class Limb(framework.RigModule):
@@ -169,19 +170,19 @@ class Appendage(Limb):
             tail_fk.create_joints(self.quantity)
         tail_fk.build()
 
-        surface = Surface(self.name)
+        surface = ribbon.Surface(self.name)
         surface.create(tail_fk.joints, 0.5, [0, 0, 1])
 
         ribbon = Ribbon(self.name, surface.transform, 1, surface.spans + 1)
         ribbon.build()
 
         for ctrl in ribbon.controls:
-            control = Control(ctrl)
+            control = control_lib.Circle(ctrl)
             control.scale([.6, .6, .6])
 
         for control_fk, control_ribbon in zip(tail_fk.controls, ribbon.controls):
-            detail = Control(control_fk)
-            rb = Control(control_ribbon)
+            detail = control_lib.Circle(control_fk)
+            rb = control_lib.Circle(control_ribbon)
             rb.set_offset()
 
             pm.parentConstraint(detail.transform, rb.offset, mo=True)

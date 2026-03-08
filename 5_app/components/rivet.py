@@ -16,6 +16,7 @@ TODO: IMPLEMENT.
 '''
 import pymel.core as pm
 import utility.common as common
+import core.framework as framework
 
 
 def create_follicle(name: str) -> pm.nt.Transform:
@@ -153,7 +154,8 @@ def create_rivet(surface: pm.PyNode, transform: pm.nt.Transform, is_orbital=Fals
 
     return follicle
 
-class Orbital(RigModule):
+
+class OrbitalRivet(framework.RigModule):
     """
     SUMMARY:
        Crea folliculos orbitales que siguen a los objetos seleccionados.

@@ -105,7 +105,7 @@ def get_original_transform(locator: pm.nt.Transform) -> pm.nt.Transform:
 
     return pm.nt.Transform(object_name)
 
-def move_objet_to_locator(locators: list[pm.nt.Transform]) -> list[pm.nt.Transform]:
+def move_object_to_locator(locators: list[pm.nt.Transform]) -> list[pm.nt.Transform]:
     """Move original objects to the location of the given locators.
 
     Args:
@@ -158,7 +158,7 @@ def constraint_to_midpoint(locator_A: pm.nt.Transform, locator_B: pm.nt.Transfor
         pm.nt.PointConstraint: The created point constraint node.
     """
     locator_mid_offset = maya_lib.create_offset(locator_mid)
-    point_constraint = maya_lib.pointConstraint_many_to_one(locator_A, locator_B, slave=locator_mid_offset, maintain_offset=False)
+    point_constraint = maya_lib.point_constraint_many_to_one(locator_A, locator_B, slave=locator_mid_offset, maintain_offset=False)
     return point_constraint
 
 def aim_to(master_locator: pm.nt.Transform, slave_locator: pm.nt.Transform) -> pm.nt.AimConstraint:
@@ -173,7 +173,7 @@ def aim_to(master_locator: pm.nt.Transform, slave_locator: pm.nt.Transform) -> p
     Returns:
         pm.nt.AimConstraint: The created aim constraint node.
     """
-    aim_constraint = maya_lib.aimConstraint_many_to_one(master_locator, slave_locator, 
+    aim_constraint = maya_lib.aim_constraint_many_to_one(master_locator, slave_locator, 
                                                maintain_offset=False, 
                                                aim_vector=maya_lib.Vector.X_POS, 
                                                up_vector=maya_lib.Vector.Z_POS, 

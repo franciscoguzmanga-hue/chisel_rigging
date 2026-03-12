@@ -11,7 +11,9 @@ import pymel.core as pm
 import utility.common as common
 import utility.mesh_lib as mesh_lib
 
-# Mesh Interaction Functions
+####################################################################################################################################
+# Mesh Interaction Functions #######################################################################################################
+####################################################################################################################################
 def orient_to_mesh_surface(mesh_transform: pm.nt.Transform, transform_node: pm.nt.Transform):
     """Orient a transform node to match the normal of a mesh surface."""
     normal_constraint = pm.normalConstraint( mesh_transform, transform_node)
@@ -22,8 +24,27 @@ def move_to_mesh_surface(mesh_transform: pm.nt.Transform, transform_node: pm.nt.
     geometry_constraint = pm.geometryConstraint( mesh_transform, transform_node)
     pm.delete(geometry_constraint)
 
+def get_render_shape(mesh_transform: pm.nt.Transform) -> pm.nt.Shape:
+    """Get the render shape of a mesh transform, which is the shape that is visible in the viewport and renders."""
+    shapes = mesh_transform.getShapes()
+    for shape in shapes:
+        if not shape.intermediateObject.get():
+            return shape
+    return None
 
-# UV Set Functions
+def rebuild_surface(surface_transform:pm.nt.Transform):
+    if not common.is_nurbs_surface(surface_transform): return None
+    rebuild_str = 'rebuildSurface -ch 1 -rpo 1 -rt 0 -end 1 -kr 0 -kcp 1 -kc 1 -su 4 -du 3 -sv 4 -dv 3 -tol 0.01 -fr 0  -dir 2;'
+    pm.select(surface_transform)
+    pm.mel.eval(rebuild_str) 
+    pm.select(surface_transform)   
+    pm.mel.eval('doBakeNonDefHistory( 1, {"prePost" });')
+
+####################################################################################################################################
+# UV Set Functions #################################################################################################################
+####################################################################################################################################
+
+
 def get_uv_sets(mesh_transform: pm.nt.Transform) -> list[str]:
     if not common.is_mesh(mesh_transform): return []
     
@@ -105,15 +126,11 @@ def check_zero_area_faces(mesh: pm.nt.Mesh, threshold=0.0001) -> list[pm.MeshFac
             zero_area_faces.append(face)
     return zero_area_faces
 
-def get_render_shape(mesh_transform: pm.nt.Transform) -> pm.nt.Shape:
-    """Get the render shape of a mesh transform, which is the shape that is visible in the viewport and renders."""
-    shapes = mesh_transform.getShapes()
-    for shape in shapes:
-        if not shape.intermediateObject.get():
-            return shape
-    return None
 
-# Intermediate Shape Functions
+####################################################################################################################################
+# Intermediate Shape Functions #####################################################################################################
+####################################################################################################################################
+
 def get_intermediate_shapes(mesh_transform: pm.nt.Transform) -> list[pm.nt.Shape]:
     """Get all intermediate shapes from the given mesh."""
     shapes = mesh_transform.getShapes()
@@ -130,13 +147,18 @@ def has_intermediate_shapes(mesh_transform: pm.nt.Transform) -> bool:
     intermediate_shapes = get_intermediate_shapes(mesh_transform)
     return len(intermediate_shapes) > 0
 
-################################################################################################################
+####################################################################################################################################
+# Deformer Utility Functions #######################################################################################################
+####################################################################################################################################
 def get_all_deformer_nodes(transform_node: pm.nt.Transform) -> list:
     deformers = pm.listHistory(transform_node, type="deformer")
     return deformers or []
 
 
-# SkinCluster Utility Functions
+####################################################################################################################################
+# SkinCluster Utility Functions ####################################################################################################
+####################################################################################################################################
+
 def get_skin_cluster_nodes(mesh: pm.nt.Mesh) -> list[pm.nt.SkinCluster]:
     """Get skin cluster nodes from surface or geometry or any node with a skin cluster in its history."""
     skin_clusters = pm.listConnections(mesh, type="skinCluster")
@@ -161,9 +183,11 @@ def bind_skin_cluster(joints: list[pm.nt.Joint], geometry: pm.nt.Mesh) -> pm.nt.
                                                     normalizeWeights=1, # 1 = Interactive
                                                     maximumInfluences=5, 
                                                     obeyMaxInfluences=True,
-                                                    dropoffRate=4.0)[0]
-    rename_skin_cluster(skin_cluster)
-    return skin_cluster
+                                                    dropoffRate=4.0)
+    
+    skin_node = pm.nt.SkinCluster(skin_cluster)
+    rename_skin_cluster(skin_node)
+    return [skin_node]
 
 def add_influences_to_skin_cluster(skin_cluster: pm.nt.SkinCluster, influences: list[pm.nt.Joint]):
     """Add influences to a skin cluster if they are not already in it."""
@@ -173,32 +197,56 @@ def add_influences_to_skin_cluster(skin_cluster: pm.nt.SkinCluster, influences: 
             continue
         skin_cluster.addInfluence(jnt, weight=0.0)
 
-def copy_skin_weights(source_mesh: pm.nt.Mesh, target_mesh: pm.nt.Mesh, is_add_weights=True):
-    """Copy skin weights from a source mesh to a target mesh. 
-       If the target mesh doesn't have a skin cluster, it will be created.
+def copy_skin_weights(source_objects:list[pm.PyNode], target_objects: list[pm.PyNode], is_add_weights=True):
+    """Copy skin weights from any kind of deformable source to a deformable target.
+       If the target doesn't have a skin cluster, it will be created.
        
     Args:        
-        source_mesh: Mesh to copy the skin weights from.
-        target_mesh: Mesh to copy the skin weights to.
+        source_objects: Could be Meshes, NurbsSurface, NurbsCurve, Vertex, Nurbs CVs or any node with skin cluster.
+        target_objects: Deformable transform node.
         is_add_weights: Whether to add the source influences. Defaults to True.
     """
-    source_skin_cluster = get_skin_cluster_nodes(source_mesh)
-    if not source_skin_cluster: raise ValueError(f"{source_mesh.name()} has no skinCluster.")
+    deformable_sources = list(filter(lambda obj: not common.is_component(obj), source_objects)) # Any deformable object.
+    component_sources  = list(filter(lambda obj: common.is_component(obj), source_objects))        # Any component.
+    component_nodes    = list(map(lambda obj: obj.node().getParent(), component_sources))
+    deformable_sources.extend(component_nodes)
 
-    source_influences = get_skin_cluster_influences(source_skin_cluster[0])
-    target_skin_cluster = get_skin_cluster_nodes(target_mesh)
-    if not target_skin_cluster:
-        target_skin_cluster= bind_skin_cluster(joints=source_influences, geometry=target_mesh)
-    if is_add_weights:
-        add_influences_to_skin_cluster(skin_cluster=target_skin_cluster[0], influences=source_influences)
+    # Pick influences from sources.
+    source_influences = []
+    for source in deformable_sources:
+        shape = mesh_lib.get_render_shape(source)
+        skin_nodes = mesh_lib.get_skin_cluster_nodes(shape)
+        for skin_node in skin_nodes:
+            influence_nodes = mesh_lib.get_skin_cluster_influences(skin_node)
+            source_influences.extend(influence_nodes)
 
-    pm.copySkinWeights(ss=source_mesh, 
-                       ds=target_mesh, 
-                       noMirror=True, 
-                       surfaceAssociation='closestPoint', 
-                       influenceAssociation='oneToOne')
+    if not source_influences:
+        pm.warning("No influences found in sources. Please check the source's skin clusters.")
+        return
+    
+    # Check skin cluster in target and add influences if needed.
+    target_nodes = list(set(map(lambda obj: obj.node().getParent() if common.is_component(obj) else obj, target_objects)))
+    target_skin_clusters = []
+    for target_node in target_nodes:
+        shape = mesh_lib.get_render_shape(target_node)    
+        target_skin_cluster = mesh_lib.get_skin_cluster_nodes(shape)
+        if not target_skin_cluster:
+            target_skin_cluster = mesh_lib.bind_skin_cluster(joints=source_influences, geometry=target_node)
+        if is_add_weights:
+            add_influences_to_skin_cluster(skin_cluster=target_skin_cluster[0], influences=source_influences)
+        target_skin_clusters.extend(target_skin_cluster)
 
-# BlendShape Utility Functions
+    # Copy skin weights with maya built in command.
+    pm.select(source_objects, target_objects)
+    copy_str = "copySkinWeights -noMirror -surfaceAssociation closestPoint -influenceAssociation closestJoint -influenceAssociation oneToOne -influenceAssociation closestBone;"
+    pm.mel.eval(copy_str)
+    return target_skin_clusters
+
+
+####################################################################################################################################
+# BlendShape Utility Functions #####################################################################################################
+####################################################################################################################################
+
 def get_blend_shape_nodes(transform: pm.nt.Transform) -> list[pm.nt.BlendShape]:
     """Get blend shape nodes from surface or geometry."""
     shape = mesh_lib.get_render_shape(transform)

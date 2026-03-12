@@ -9,8 +9,11 @@ importlib.reload(importlib.import_module("utility.maya_lib"))
 importlib.reload(importlib.import_module("utility.common"))
 importlib.reload(importlib.import_module("utility.mesh_lib"))
 importlib.reload(importlib.import_module("components.helpers"))
+importlib.reload(importlib.import_module("components.squash_stretch"))
+importlib.reload(importlib.import_module("components.ribbon"))
+
 
 from ui.chisel import showUI
-
 if __name__ == "__main__":
     chisel= showUI()
+

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>290</width>
-    <height>659</height>
+    <height>650</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -105,15 +105,12 @@ QTabBar::tab {
     padding: 8px 12px;
 }
 
-/* Cuando el usuario pasa el mouse */
 QTabBar::tab:hover {
     background-color: #4a4a4a;
     color: white;
 }
 
-/* La pestaña que está activa actualmente */
 QTabBar::tab:selected {
-    /*background-color: rgb(43, 43, 43);*/
 	background-color: rgb(82, 133, 166);
     color: white;
     font-weight: bold;
@@ -135,26 +132,28 @@ QToolBox::tab {
     border-radius: 5px;
     font-weight: bold;
     padding: 5px;
+    image: url(:controls/tab_closed_icon.png);
+    image-position:right;
+	min-height: 20px; 
+    max-height: 20px;
 }
 
-/* Cuando pasas el mouse por encima del encabezado */
 QToolBox::tab:hover {
     background-color: #4a4a4a;
     color: white;
 }
 
-/* La pestaña que está abierta actualmente */
 QToolBox::tab:selected {
-
     color: white;
     border-bottom: 2px solid rgb(82, 133, 166);
+    image: url(:controls/tab_open_icon.png);
+    image-position:right;
 }
 
 
 
 /***************** QFrame ***************************************************/
 QFrame{
-	/*background-color: rgb(170, 255, 0);*/
 	background-color: rgb(68, 68, 68);
     border-radius:5px;
 }
@@ -180,8 +179,30 @@ QFrame[class=label_frame]{
     padding-left:10px;
 }
 
+/***************** QLabel ***************************************************/
 QLabel {
 	background-color: rgba(255, 255, 255, 0);
+	font-weight: bold;
+}
+
+/***************** QGroupBox ***************************************************/
+QGroupBox {
+	background-color: rgb(43, 43, 43);
+	border: 1px rgb(43, 43, 43);
+	border-radius:5px;
+	padding-top:30px;
+	padding-bottom: 10px;
+	padding-right:10px;
+    padding-left:10px;
+	color: white;
+	font: 12px;
+}
+
+QGroupBox::title {
+	padding-top:8px;
+	padding-left: 10px;
+	padding-bottom: 5px;
+	color: white;
 	font-weight: bold;
 }
 
@@ -207,6 +228,7 @@ QPushButton[class=control-group-top]{
     border-bottom-right-radius: 0px;
     border-bottom-left-radius: 0px;
 }
+
 QPushButton[class=control-group-bottom]{
     border-top-left-radius: 0px;
     border-top-right-radius: 0px;
@@ -250,31 +272,6 @@ QPushButton[class=control-group-bottom-left]{
     border-bottom-left-radius: 5px;
 }
 
-
-
-/***************** QGroupBox ***************************************************/
-QGroupBox {
-	background-color: rgb(43, 43, 43);
-	border: 1px rgb(43, 43, 43);
-	border-radius:5px;
-	padding-top:30px;
-	padding-bottom: 10px;
-	padding-right:10px;
-    padding-left:10px;
-	color: white;
-	font: 12px;
-}
-
-QGroupBox::title {
-	padding-top:8px;
-	padding-left: 10px;
-	padding-bottom: 5px;
-	color: white;
-	font-weight: bold;
-}
-
-
-
 /***************** Classes ***************************************************/
 #LayOffsetCreation {
 	background-color: rgb(43, 43, 43);
@@ -316,7 +313,6 @@ color: rgb(68, 68, 68);
 #LayShapeColorM{
     border-radius: 25px;
 }
-
 </string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -364,21 +360,24 @@ color: rgb(68, 68, 68);
            <property name="frameShadow">
             <enum>QFrame::Raised</enum>
            </property>
+           <property name="class" stdset="0">
+            <string>dark-background</string>
+           </property>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <property name="spacing">
              <number>1</number>
             </property>
             <property name="leftMargin">
-             <number>0</number>
+             <number>10</number>
             </property>
             <property name="topMargin">
-             <number>0</number>
+             <number>10</number>
             </property>
             <property name="rightMargin">
-             <number>0</number>
+             <number>10</number>
             </property>
             <property name="bottomMargin">
-             <number>0</number>
+             <number>10</number>
             </property>
             <item>
              <widget class="QPushButton" name="BtnFreezeTransform">
@@ -422,116 +421,6 @@ color: rgb(68, 68, 68);
           </widget>
          </item>
          <item>
-          <widget class="QFrame" name="lay_offset_creation_2">
-           <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="3,2,1">
-            <property name="spacing">
-             <number>1</number>
-            </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QPushButton" name="btnZeroOut">
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>60</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>Creates group root and/or offset
-to zero transformations of selection.</string>
-              </property>
-              <property name="text">
-               <string>Zero Out
-Selection</string>
-              </property>
-              <property name="class" stdset="0">
-               <string>control-group-left</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QFrame" name="LayOffsetCreation">
-              <property name="frameShape">
-               <enum>QFrame::NoFrame</enum>
-              </property>
-              <property name="frameShadow">
-               <enum>QFrame::Plain</enum>
-              </property>
-              <property name="lineWidth">
-               <number>0</number>
-              </property>
-              <property name="midLineWidth">
-               <number>0</number>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_16" stretch="0,0">
-               <property name="leftMargin">
-                <number>10</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>10</number>
-               </property>
-               <property name="bottomMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QCheckBox" name="chkZeroOutRoot">
-                 <property name="text">
-                  <string>Root</string>
-                 </property>
-                 <property name="checked">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="chkZeroOutOffset">
-                 <property name="text">
-                  <string>└ Offset</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="BtnMoveOffset">
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>60</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>Move parent group of current selection 
-to zero out it's transformations.</string>
-              </property>
-              <property name="text">
-               <string>Move
-Offset</string>
-              </property>
-              <property name="class" stdset="0">
-               <string>control-group-right</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
           <widget class="QFrame" name="LayAlign">
            <property name="frameShape">
             <enum>QFrame::NoFrame</enum>
@@ -539,21 +428,24 @@ Offset</string>
            <property name="frameShadow">
             <enum>QFrame::Raised</enum>
            </property>
+           <property name="class" stdset="0">
+            <string>dark-background</string>
+           </property>
            <layout class="QHBoxLayout" name="horizontalLayout_4">
             <property name="spacing">
              <number>1</number>
             </property>
             <property name="leftMargin">
-             <number>0</number>
+             <number>10</number>
             </property>
             <property name="topMargin">
-             <number>0</number>
+             <number>10</number>
             </property>
             <property name="rightMargin">
-             <number>0</number>
+             <number>10</number>
             </property>
             <property name="bottomMargin">
-             <number>0</number>
+             <number>10</number>
             </property>
             <item>
              <widget class="QPushButton" name="BtnAlignTransform">
@@ -866,6 +758,116 @@ based on selection order.</string>
           </widget>
          </item>
          <item>
+          <widget class="QFrame" name="lay_offset_creation_2">
+           <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="3,2,1">
+            <property name="spacing">
+             <number>1</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="btnZeroOut">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>60</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Creates group root and/or offset
+to zero transformations of selection.</string>
+              </property>
+              <property name="text">
+               <string>Zero Out
+Selection</string>
+              </property>
+              <property name="class" stdset="0">
+               <string>control-group-left</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QFrame" name="LayOffsetCreation">
+              <property name="frameShape">
+               <enum>QFrame::NoFrame</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Plain</enum>
+              </property>
+              <property name="lineWidth">
+               <number>0</number>
+              </property>
+              <property name="midLineWidth">
+               <number>0</number>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_16" stretch="0,0">
+               <property name="leftMargin">
+                <number>10</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>10</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QCheckBox" name="chkZeroOutRoot">
+                 <property name="text">
+                  <string>Root</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="chkZeroOutOffset">
+                 <property name="text">
+                  <string>└ Offset</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="BtnMoveOffset">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>60</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Move parent group of current selection 
+to zero out it's transformations.</string>
+              </property>
+              <property name="text">
+               <string>Move
+Offset</string>
+              </property>
+              <property name="class" stdset="0">
+               <string>control-group-right</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
           <spacer name="verticalSpacer">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -893,7 +895,7 @@ based on selection order.</string>
            <property name="currentIndex">
             <number>0</number>
            </property>
-           <widget class="QWidget" name="ControlTtabWidgetPage1" native="true">
+           <widget class="QWidget" name="ControlTtabWidgetPage1">
             <attribute name="title">
              <string>Control Creation</string>
             </attribute>
@@ -1847,7 +1849,7 @@ Creates control with zero out groups.</string>
              </item>
             </layout>
            </widget>
-           <widget class="QWidget" name="ControlTtabWidgetPage2" native="true">
+           <widget class="QWidget" name="ControlTtabWidgetPage2">
             <attribute name="title">
              <string>Control Edit</string>
             </attribute>
@@ -2475,7 +2477,7 @@ the oposite side of X axis.</string>
           <number>50</number>
          </property>
          <item>
-          <widget class="QToolBox" name="toolBox">
+          <widget class="QToolBox" name="ComponentToolBox">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -2489,6 +2491,14 @@ the oposite side of X axis.</string>
             <number>0</number>
            </property>
            <widget class="QWidget" name="PageHelpers">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>268</width>
+              <height>206</height>
+             </rect>
+            </property>
             <attribute name="label">
              <string>Helpers</string>
             </attribute>
@@ -2745,6 +2755,14 @@ the oposite side of X axis.</string>
             </layout>
            </widget>
            <widget class="QWidget" name="PageQuickSetups">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>-14</y>
+              <width>247</width>
+              <height>269</height>
+             </rect>
+            </property>
             <attribute name="label">
              <string>Quick Setups</string>
             </attribute>
@@ -2803,11 +2821,11 @@ the oposite side of X axis.</string>
                    <number>0</number>
                   </property>
                   <item>
-                   <widget class="QLineEdit" name="TxtSetupSourceName">
+                   <widget class="QLineEdit" name="TxtSetupSourceAttributeName">
                     <property name="minimumSize">
                      <size>
                       <width>0</width>
-                      <height>30</height>
+                      <height>32</height>
                      </size>
                     </property>
                     <property name="toolTip">
@@ -2822,7 +2840,7 @@ the oposite side of X axis.</string>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="BtnSetupSourcePick">
+                   <widget class="QPushButton" name="BtnSetupSourceAttributePick">
                     <property name="minimumSize">
                      <size>
                       <width>30</width>
@@ -2943,7 +2961,7 @@ the oposite side of X axis.</string>
                <property name="class" stdset="0">
                 <string>dark-background</string>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_27">
+               <layout class="QVBoxLayout" name="verticalLayout_12">
                 <property name="spacing">
                  <number>1</number>
                 </property>
@@ -2960,7 +2978,7 @@ the oposite side of X axis.</string>
                  <number>0</number>
                 </property>
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_18">
+                 <layout class="QHBoxLayout" name="LaySetupMeshSource">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -2977,11 +2995,11 @@ the oposite side of X axis.</string>
                    <number>0</number>
                   </property>
                   <item>
-                   <widget class="QLineEdit" name="lineEdit">
+                   <widget class="QLineEdit" name="TxtSetupMeshSource">
                     <property name="minimumSize">
                      <size>
                       <width>0</width>
-                      <height>30</height>
+                      <height>32</height>
                      </size>
                     </property>
                     <property name="maximumSize">
@@ -2999,7 +3017,7 @@ the oposite side of X axis.</string>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="pushButton">
+                   <widget class="QPushButton" name="BtnSetupMeshSourcePick">
                     <property name="minimumSize">
                      <size>
                       <width>30</width>
@@ -3023,7 +3041,7 @@ the oposite side of X axis.</string>
                  </layout>
                 </item>
                 <item>
-                 <widget class="QFrame" name="horizontalFrame_20">
+                 <widget class="QFrame" name="LaySetupSkin">
                   <property name="class" stdset="0">
                    <string>label_frame</string>
                   </property>
@@ -3046,14 +3064,14 @@ the oposite side of X axis.</string>
                    <item>
                     <widget class="QLabel" name="LblSurfaceSetup">
                      <property name="text">
-                      <string>Mesh</string>
+                      <string>Skin</string>
                      </property>
                     </widget>
                    </item>
                    <item>
                     <layout class="QHBoxLayout" name="LaySurfaceSetupButtons">
                      <property name="spacing">
-                      <number>1</number>
+                      <number>0</number>
                      </property>
                      <property name="leftMargin">
                       <number>0</number>
@@ -3068,6 +3086,26 @@ the oposite side of X axis.</string>
                       <number>0</number>
                      </property>
                      <item>
+                      <layout class="QHBoxLayout" name="horizontalLayout_9">
+                       <property name="leftMargin">
+                        <number>10</number>
+                       </property>
+                       <item>
+                        <widget class="QCheckBox" name="ChkAddInfluences">
+                         <property name="toolTip">
+                          <string>Wether add or not influences from source mesh.</string>
+                         </property>
+                         <property name="text">
+                          <string>Add Inf</string>
+                         </property>
+                         <property name="checked">
+                          <bool>true</bool>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
                       <widget class="QPushButton" name="BtnCopySkin">
                        <property name="minimumSize">
                         <size>
@@ -3079,9 +3117,82 @@ the oposite side of X axis.</string>
                         <string>Copy skinning from source to selected objects.</string>
                        </property>
                        <property name="text">
-                        <string>Copy Skin</string>
+                        <string>Copy</string>
                        </property>
                       </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QFrame" name="LaySetupRivet">
+                  <property name="class" stdset="0">
+                   <string>label_frame</string>
+                  </property>
+                  <layout class="QHBoxLayout" name="LaySurfaceSetups_2" stretch="1,3">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="LblSurfaceSetup_2">
+                     <property name="text">
+                      <string>Rivet</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="LaySurfaceSetupButtons_2">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <layout class="QHBoxLayout" name="horizontalLayout_18">
+                       <property name="leftMargin">
+                        <number>10</number>
+                       </property>
+                       <item>
+                        <widget class="QCheckBox" name="ChkCreateRivetOrbital">
+                         <property name="minimumSize">
+                          <size>
+                           <width>0</width>
+                           <height>30</height>
+                          </size>
+                         </property>
+                         <property name="toolTip">
+                          <string>Pin current selection to surface or follow transform.</string>
+                         </property>
+                         <property name="text">
+                          <string>Orbital</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
                      </item>
                      <item>
                       <widget class="QPushButton" name="BtnCreateRivet">
@@ -3092,10 +3203,96 @@ the oposite side of X axis.</string>
                         </size>
                        </property>
                        <property name="toolTip">
-                        <string>Pin current selection to mesh.</string>
+                        <string>Create rivet on closes point of mesh.</string>
                        </property>
                        <property name="text">
-                        <string>Rivet</string>
+                        <string>Create</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QFrame" name="horizontalFrame_3">
+                  <property name="class" stdset="0">
+                   <string>label_frame</string>
+                  </property>
+                  <layout class="QHBoxLayout" name="LaySquashStretchM" stretch="1,3">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="LblSquashStretch">
+                     <property name="text">
+                      <string>SS</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_51" stretch="1,1">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QLineEdit" name="TxtCreateSSName">
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>30</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>16777215</width>
+                         <height>30</height>
+                        </size>
+                       </property>
+                       <property name="placeholderText">
+                        <string> Name</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="BtnCreateSS">
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>30</height>
+                        </size>
+                       </property>
+                       <property name="toolTip">
+                        <string>Select deformable objects.
+Create a Squash &amp; Stretch system.</string>
+                       </property>
+                       <property name="text">
+                        <string>Create</string>
                        </property>
                        <property name="class" stdset="0">
                         <string>control-group-bottom-right</string>
@@ -3106,93 +3303,6 @@ the oposite side of X axis.</string>
                    </item>
                   </layout>
                  </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item>
-              <widget class="QFrame" name="horizontalFrame_22">
-               <property name="class" stdset="0">
-                <string>label_frame</string>
-               </property>
-               <layout class="QHBoxLayout" name="LayMechanicSetups" stretch="1,3">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="LblMechanicsSetup">
-                  <property name="text">
-                   <string>Mechanics</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <layout class="QHBoxLayout" name="LayMechanicSetupButtons">
-                  <property name="spacing">
-                   <number>1</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <widget class="QPushButton" name="BtnCreateSS">
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>30</height>
-                     </size>
-                    </property>
-                    <property name="toolTip">
-                     <string>Select deformable objects.
-Create a Squash &amp; Stretch system.</string>
-                    </property>
-                    <property name="text">
-                     <string>S &amp;&amp; S</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="BtnCreateIK">
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>30</height>
-                     </size>
-                    </property>
-                    <property name="toolTip">
-                     <string>Selects 3 connected joints
-.Creates an IK system.</string>
-                    </property>
-                    <property name="text">
-                     <string>IK</string>
-                    </property>
-                    <property name="class" stdset="0">
-                     <string>control-group-right</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
                 </item>
                </layout>
               </widget>
@@ -3380,8 +3490,8 @@ Create a Squash &amp; Stretch system.</string>
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>247</width>
-              <height>299</height>
+              <width>268</width>
+              <height>293</height>
              </rect>
             </property>
             <property name="minimumSize">
@@ -3444,6 +3554,9 @@ Create a Squash &amp; Stretch system.</string>
                 </property>
                 <item>
                  <layout class="QVBoxLayout" name="lay_surface_parameters">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
                   <item>
                    <widget class="QFrame" name="laySurfaceOrient">
                     <property name="minimumSize">
@@ -3710,9 +3823,9 @@ Rebuild</string>
                <property name="title">
                 <string>Ribbon Creation</string>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_25" stretch="1,2">
+               <layout class="QVBoxLayout" name="verticalLayout_25" stretch="1,1">
                 <property name="spacing">
-                 <number>5</number>
+                 <number>1</number>
                 </property>
                 <property name="leftMargin">
                  <number>0</number>
@@ -3767,7 +3880,7 @@ Rebuild</string>
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
-                       <height>32</height>
+                       <height>30</height>
                       </size>
                      </property>
                      <property name="maximumSize">
@@ -3808,7 +3921,7 @@ Rebuild</string>
                       <string>&lt;&lt;</string>
                      </property>
                      <property name="class" stdset="0">
-                      <string>control-group-right</string>
+                      <string>control-group-top-right</string>
                      </property>
                     </widget>
                    </item>
@@ -3849,83 +3962,6 @@ Rebuild</string>
                     <property name="bottomMargin">
                      <number>0</number>
                     </property>
-                    <item>
-                     <widget class="QFrame" name="LayRibbonControlQuantity">
-                      <property name="minimumSize">
-                       <size>
-                        <width>0</width>
-                        <height>30</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>16777215</width>
-                        <height>30</height>
-                       </size>
-                      </property>
-                      <property name="frameShape">
-                       <enum>QFrame::NoFrame</enum>
-                      </property>
-                      <property name="frameShadow">
-                       <enum>QFrame::Raised</enum>
-                      </property>
-                      <property name="class" stdset="0">
-                       <string>label_frame</string>
-                      </property>
-                      <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="0,0">
-                       <property name="leftMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="topMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="rightMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="bottomMargin">
-                        <number>0</number>
-                       </property>
-                       <item>
-                        <widget class="QLabel" name="LblRibbonControlQuantity">
-                         <property name="minimumSize">
-                          <size>
-                           <width>75</width>
-                           <height>0</height>
-                          </size>
-                         </property>
-                         <property name="text">
-                          <string># Control</string>
-                         </property>
-                        </widget>
-                       </item>
-                       <item>
-                        <widget class="QLineEdit" name="TxtRibbonControlQuantity">
-                         <property name="minimumSize">
-                          <size>
-                           <width>50</width>
-                           <height>30</height>
-                          </size>
-                         </property>
-                         <property name="maximumSize">
-                          <size>
-                           <width>50</width>
-                           <height>30</height>
-                          </size>
-                         </property>
-                         <property name="toolTip">
-                          <string>Number of controls.</string>
-                         </property>
-                         <property name="text">
-                          <string>5</string>
-                         </property>
-                         <property name="class" stdset="0">
-                          <string>line-edit-text-center</string>
-                         </property>
-                        </widget>
-                       </item>
-                      </layout>
-                     </widget>
-                    </item>
                     <item>
                      <widget class="QFrame" name="LayRibbonJointQuantity">
                       <property name="minimumSize">
@@ -4010,13 +4046,13 @@ Rebuild</string>
                     <property name="minimumSize">
                      <size>
                       <width>0</width>
-                      <height>60</height>
+                      <height>30</height>
                      </size>
                     </property>
                     <property name="maximumSize">
                      <size>
                       <width>16777215</width>
-                      <height>60</height>
+                      <height>30</height>
                      </size>
                     </property>
                     <property name="toolTip">
@@ -4026,7 +4062,7 @@ Rebuild</string>
                      <string>Create</string>
                     </property>
                     <property name="class" stdset="0">
-                     <string>control-group-right</string>
+                     <string>control-group-bottom-right</string>
                     </property>
                    </widget>
                   </item>
@@ -4034,6 +4070,19 @@ Rebuild</string>
                 </item>
                </layout>
               </widget>
+             </item>
+             <item>
+              <spacer name="verticalSpacer_3">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
              </item>
             </layout>
            </widget>
@@ -4060,7 +4109,7 @@ Rebuild</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_18">
          <item>
-          <widget class="QToolBox" name="toolBox_2">
+          <widget class="QToolBox" name="SurgeryToolBox">
            <property name="currentIndex">
             <number>0</number>
            </property>
@@ -4070,7 +4119,7 @@ Rebuild</string>
               <x>0</x>
               <y>0</y>
               <width>268</width>
-              <height>374</height>
+              <height>270</height>
              </rect>
             </property>
             <attribute name="label">
@@ -4512,8 +4561,8 @@ Rebuild</string>
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-91</y>
-              <width>247</width>
+              <y>0</y>
+              <width>268</width>
               <height>265</height>
              </rect>
             </property>
@@ -5114,7 +5163,10 @@ Rebuild</string>
             <number>5</number>
            </property>
            <item>
-            <layout class="QHBoxLayout" name="LayFilterType">
+            <layout class="QHBoxLayout" name="LayFilterType" stretch="0,0,0,0">
+             <property name="spacing">
+              <number>5</number>
+             </property>
              <item>
               <spacer name="FilterHorizontalSpacerB">
                <property name="orientation">
@@ -5361,23 +5413,19 @@ Rebuild</string>
   <tabstop>btnFilterNurbs</tabstop>
   <tabstop>btnFilterLeaves</tabstop>
   <tabstop>RdoControlDirectConnect</tabstop>
-  <tabstop>TxtSetupSourceName</tabstop>
-  <tabstop>BtnSetupSourcePick</tabstop>
+  <tabstop>TxtSetupSourceAttributeName</tabstop>
+  <tabstop>BtnSetupSourceAttributePick</tabstop>
   <tabstop>BtnCreateLocator</tabstop>
   <tabstop>BtnCreateJoint</tabstop>
   <tabstop>BtnBuildHierarchy</tabstop>
   <tabstop>BtnCreateProxyAttribute</tabstop>
   <tabstop>BtnSetDefaultValue</tabstop>
   <tabstop>BtnCopySkin</tabstop>
-  <tabstop>BtnCreateRivet</tabstop>
-  <tabstop>BtnCreateSS</tabstop>
-  <tabstop>BtnCreateIK</tabstop>
   <tabstop>btnAlignTemplate2Object</tabstop>
   <tabstop>btnTemplateAlignMid</tabstop>
   <tabstop>btnTemplateAimTo</tabstop>
   <tabstop>btnAlignObject2Template</tabstop>
   <tabstop>BtnCreateTemplate</tabstop>
-  <tabstop>TxtRibbonControlQuantity</tabstop>
   <tabstop>TxtRibbonJointQuantity</tabstop>
   <tabstop>BntCreateRibbon</tabstop>
   <tabstop>BtnConnectionInputs</tabstop>
@@ -5437,8 +5485,8 @@ Rebuild</string>
   <tabstop>BtnConnectCustom</tabstop>
   <tabstop>BtnConnectVisibility</tabstop>
   <tabstop>btnSemiCircle</tabstop>
-  <tabstop>lineEdit</tabstop>
-  <tabstop>pushButton</tabstop>
+  <tabstop>TxtSetupMeshSource</tabstop>
+  <tabstop>BtnSetupMeshSourcePick</tabstop>
  </tabstops>
  <resources>
   <include location="icons/_icons.qrc"/>

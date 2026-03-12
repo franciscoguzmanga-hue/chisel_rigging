@@ -138,6 +138,21 @@ def convert_character_to_number(char: str) -> int:
         result += (alphabet.index(c) + 1) * (base ** i)
     return result - 1
 
+def generate_unique_name(base_name: str) -> str:
+    """Generates a unique name by appending a number if the base name already exists in the scene."""
+    if not pm.objExists(base_name):
+        return base_name
+    
+    index = 1
+    while True:
+        new_name = f"{base_name}_{str(index).zfill(3)}"
+        if not pm.objExists(new_name):
+            return new_name
+        index += 1
+
+def strip_number_suffix(name: str) -> str:
+    """Removes trailing numbers and underscores from a name."""
+    return name.rstrip('0123456789_')
 
 ####################################################################################################################################
 #  TYPE CHECKING FUNCTIONS ########################################################################################################

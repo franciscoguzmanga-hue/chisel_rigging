@@ -10,6 +10,7 @@ from shiboken2 import wrapInstance
 
 import components.helpers as helpers
 import components.ribbon as ribbon
+import components.squash_stretch as ss
 import core.control_framework as ctrl_lib
 import utility.common as common
 import utility.maya_lib as maya_lib
@@ -49,7 +50,6 @@ def deleteUI():
             existing_window.deleteLater()
 
 
-
 class ChiselUI(QtWidgets.QDialog):
     def __init__(self, parent=None):
         
@@ -57,7 +57,17 @@ class ChiselUI(QtWidgets.QDialog):
         self.setObjectName(CHISEL_ID)
         
         QtCompat.loadUi(UI_PATH, self)
-        self.setStyleSheet(open(QSS_PATH, "r").read())
+
+        with open(QSS_PATH, "r") as qss_file:
+            style_sheet = qss_file.read()
+
+        # Replace icon paths in the stylesheet with actual paths.
+        tab_open_triangle_path   = os.path.join(ICONS_PATH, 'tab_open_icon.png').replace('\\', '/')
+        tab_closed_triangle_path = os.path.join(ICONS_PATH, 'tab_closed_icon.png').replace('\\', '/')        
+        style_sheet = style_sheet.replace(":controls/tab_open_icon.png", f'"{tab_open_triangle_path}"')
+        style_sheet = style_sheet.replace(":controls/tab_closed_icon.png", f'"{tab_closed_triangle_path}"')
+        self.setStyleSheet(style_sheet)
+        
         images = {
             "btnCircle":  "circle_icon.png",
             "btnSquare":  "square_icon.png",
@@ -123,8 +133,6 @@ class ControlsController:
     def bind_view(self):
         
         connections = {
-
-
             # Control functions
             "btnCircle":     partial(self.press_create_control,ctrl_lib.Shapes.CIRCLE),
             "btnSquare":     partial(self.press_create_control,ctrl_lib.Shapes.SQUARE),
@@ -162,8 +170,6 @@ class ControlsController:
             "BtnShapeColorBlue":    partial(self.control_shape_color_index, ctrl_lib.ColorIndex.BLUE),
             "BtnShapeColorPurple":  partial(self.control_shape_color_index, ctrl_lib.ColorIndex.PURPLE),
             "BtnShapeColorGreen":   partial(self.control_shape_color_index, ctrl_lib.ColorIndex.GREEN),
-
-            
         }
 
         for button_name, method in connections.items():
@@ -172,7 +178,6 @@ class ControlsController:
                 button.clicked.connect(method)
             else:
                 pm.warning(f"Button '{button_name}' not found in the view. Connection skipped.")
-
         
         connections = {
             "RdoControlConstrained": self.update_connect_checkboxes,
@@ -207,7 +212,6 @@ class ControlsController:
             pm.parentConstraint(control.transform, target, maintainOffset=True)
             pm.scaleConstraint(control.transform, target, maintainOffset=True)
             return
-        
         
         if is_direct_connected:
             control.transform.translate >> target.translate
@@ -274,7 +278,7 @@ class ControlsController:
         source = selected_objects[:-1]
         destiny = selected_objects[-1]
         
-        control = ctrl_lib.Circle(destiny)
+        control = ctrl_lib.Control(destiny)
         control.shape_replace(*source)
         pm.delete(source)
     
@@ -317,13 +321,13 @@ class ControlsController:
     def control_shape_mirror(self):
         selected_objects = pm.selected()
         for obj in selected_objects:
-            control = ctrl_lib.Circle(obj)
+            control = ctrl_lib.Control(obj)
             control.mirror()
 
     def _resize_control_shape(self, scale_factor):
         selected_controls = pm.selected()
         for obj in selected_controls:
-            control = ctrl_lib.Circle(obj)
+            control = ctrl_lib.Control(obj)
             control.shape_scale(scale_factor)
 
     @common.undo_chunk("Increase Control Shape Size")
@@ -344,7 +348,7 @@ class ControlsController:
         for obj in selected_controls:
             if not common.is_transform(obj):
                 continue
-            control = ctrl_lib.Circle(obj)
+            control = ctrl_lib.Control(obj)
             control.shape_line_thick()
     
     @common.undo_chunk("Thin Control Shape")
@@ -353,7 +357,7 @@ class ControlsController:
         for obj in selected_controls:
             if not common.is_transform(obj):
                 continue
-            control = ctrl_lib.Circle(obj)
+            control = ctrl_lib.Control(obj)
             control.shape_line_thin()
 
     @common.undo_chunk("Change Control Color Index")
@@ -372,7 +376,7 @@ class ControlsController:
             pm.warning("No selection found.")
             return
         for obj in selected_controls:
-            control = ctrl_lib.Circle(obj)
+            control = ctrl_lib.Control(obj)
             control.reset()
 
 class EditController:
@@ -388,10 +392,12 @@ class EditController:
             "btnZeroOut":           self.press_create_offset_group,
             "BtnMoveOffset":        self.press_move_offset_group,
             
+            # Alignment functions.
             "BtnAlignTransform":    self.press_align_many_to_one,
             "BtnMoveToSurface":     partial(self.press_align_with_mesh_surface, "move"),
             "BtnOrientToSurface":   partial(self.press_align_with_mesh_surface, "orient"),
             
+            # Creation functions.
             "BtnCreateLocator":     partial(self.press_create_at_selection, maya_lib.create_locator, "locator"),
             "BtnCreateJoint":       partial(self.press_create_at_selection, maya_lib.create_joint,   "joint"),
             "BtnCreateGroup":       partial(self.press_create_at_selection, maya_lib.create_group,   "group"),
@@ -533,8 +539,28 @@ class ComponentController:
             "btnAlignTemplate2Object": self.press_move_templates_to_objects,
             "btnTemplateAlignMid":     self.press_constraint_templates_to_midpoint,
             "btnTemplateAimTo":        self.press_orient_templates_to_template,
+            
+            # Attribute setups.
+            "BtnSetupSourceAttributePick": self.press_pick_source_attribute,
+            "BtnCreateProxyAttribute": self.press_create_proxy_attribute,
+            "BtnSetDefaultValue":      self.press_set_default_value,
+
+            # Mesh setups.
+            "BtnSetupMeshSourcePick": self.press_pick_mesh_source,
+            "BtnCopySkin":            self.press_copy_skin,
+            "BtnCreateRivet":         self.press_create_rivets,
+            "BtnCreateSS":            self.press_create_ss,
+
+            "BtnConnectAll":        self.press_connect_all_attributes,
+            "BtnConnectTranslate":  self.press_connect_translate_attributes,
+            "BtnConnectRotation":   self.press_connect_rotation_attributes,
+            "BtnConnectScale":      self.press_connect_scale_attributes,
+            "BtnConnectVisibility": self.press_connect_visibility_attributes,
+            "BtnConnectCustom":     self.press_connect_custom_attributes,
+
             # Ribbon module functions
             "btnCreateSurface":       self.press_create_surface,
+            "BtnRibbonNamePick":      self.press_pick_surface_name,
             "BntCreateRibbon":        self.press_build_ribbon,
         }
 
@@ -572,24 +598,261 @@ class ComponentController:
         for slave in slaves_templates:
             helpers.aim_to(master_template, slave)
 
+    # Attribute setup functions
+    @common.undo_chunk("Pick Source Attribute")
+    def press_pick_source_attribute(self):
+        selected_objects = pm.selected()
+        attributes = []
+        for obj in selected_objects:
+            obj_attributes = maya_lib.get_selected_attributes(transform_node=obj)
+            attr_names = map(lambda x: x.name(longName=False), obj_attributes)
+            attributes.extend(attr_names)
+
+        attributes_list = ", ".join(attributes)        
+        self.view.TxtSetupSourceAttributeName.setText(attributes_list)
+
+    @common.undo_chunk("Create Proxy Attribute")
+    def press_create_proxy_attribute(self):
+        source_attributes = self.view.TxtSetupSourceAttributeName.text().split(",")
+        if not source_attributes:
+            pm.warning("No source attributes specified. Please pick source attributes first.")
+            return
+        
+        selected_objects = pm.selected()
+        for obj in selected_objects:
+            for attr in source_attributes:
+                attr_node = pm.Attribute(attr)
+                maya_lib.create_proxy_attribute(attr_node, obj)
+
+    @common.undo_chunk("Set Default Value")
+    def press_set_default_value(self):
+        source_attributes = self.view.TxtSetupSourceAttributeName.text().split(",")
+        if not source_attributes:
+            pm.warning("No source attributes specified. Please pick source attributes first.")
+            return
+        
+        for attr in source_attributes:
+            attr_node = pm.Attribute(attr)
+            maya_lib.update_attribute_default(attr_node)
+
+    # Mesh setup functions.
+    def press_pick_mesh_source(self):
+        selected_objects = pm.selected()
+        obj_names = map(lambda x: x.name(), selected_objects)
+        objects_list = ", ".join(obj_names)
+        self.view.TxtSetupMeshSource.setText(objects_list)
+
+        ## Set SS system name text box.
+        first = list(filter(lambda obj: common.is_mesh(obj) or common.is_nurbs_surface(obj), selected_objects))
+        if first:
+            ss_name = f"{first[0].name()}_SS"
+        else:
+            first = list(set(map(lambda obj: obj.node(), selected_objects)))
+            if first:
+                ss_name = f"{first[0].name()}_SS"
+            else:
+                ss_name = "SS"
+            
+        self.view.TxtCreateSSName.setText(ss_name)
+
+    def press_copy_skin(self):
+        sources = self.view.TxtSetupMeshSource.text()
+        add_influences = self.view.ChkAddInfluences.isChecked()
+        if not sources:
+            pm.warning("No source mesh specified. Please pick a source mesh first.")
+            return
+        
+        # Map sources.
+        source_names = sources.split(",")
+        deformable_sources = list(map(lambda name: pm.PyNode(name), source_names))
+
+        selected_objects = pm.selected()
+        target_skin_node = mesh_lib.copy_skin_weights(source_objects=deformable_sources,
+                                    target_objects=selected_objects,
+                                    is_add_weights=add_influences)
+        pm.select(target_skin_node, replace=True)
+
+    def press_create_rivets(self):
+        sources = self.view.TxtSetupMeshSource.text()
+        is_orbital = self.view.ChkCreateRivetOrbital.isChecked()
+        if not sources:
+            pm.warning("No source mesh specified. Please pick a source mesh first.")
+            return
+        
+        # Map sources to diferentiate between meshes and components.
+        source_names = sources.split(", ")
+        source_list = map(lambda name: pm.PyNode(name), source_names)
+        
+        rivet_bases = []
+        for source in source_list:
+            node = pm.PyNode(source)
+            if common.is_mesh(node) or common.is_nurbs_surface(node):
+                rivet_bases.append(node)
+            if common.is_component(node):
+                parent = node.node().getParent()
+                rivet_bases.append(parent)
+        rivet_bases = list(set(rivet_bases)) # Remove duplicates.
+
+        transforms_targets = pm.selected()
+        rivets = []        
+        for target in transforms_targets:
+            for mesh in rivet_bases:
+                if target in rivet_bases: 
+                    pm.warning(f"Target '{target}' is also a source mesh. Skipping.")
+                    continue
+                if common.is_nurbs_surface(mesh):
+                    mesh_lib.rebuild_surface(mesh)
+                rivet = maya_lib.create_rivet(name=f"{target}_rivet", 
+                                            surface=mesh,
+                                            position_object=target,
+                                            is_orbital=is_orbital)
+                if not is_orbital:
+                    maya_lib.parent_constraint_many_to_one(rivet, slave=target, maintain_offset=True)
+                rivets.append(rivet)
+        
+        pm.select(rivets)   
+
+    def press_create_ss(self):
+        sources = self.view.TxtSetupMeshSource.text()
+        name = self.view.TxtCreateSSName.text() or "SS"
+        if not sources:
+            pm.warning("No source mesh specified. Please pick a source mesh first.")
+            return
+        
+        source_names = sources.split(", ")
+        source_list = list(map(lambda name: pm.PyNode(name), source_names))
+
+        ss_system = ss.SquashStretch(name, source_list)
+        ss_system.build()
+
+    # Attribute Connect functions.
+    def press_connect_all_attributes(self):
+        selected_objects = pm.selected()
+        master = selected_objects[0]
+        slaves = selected_objects[1:]
+        for slave in slaves:
+            maya_lib.connect_all_keyable_attributes(master, slave)
+
+    def _connect_attributes(self, attribute):
+        selected_objects = pm.selected()
+        master = selected_objects[0]
+        slaves = selected_objects[1:]
+        for slave in slaves:
+            maya_lib.connect_attributes(master=master, slave=slave, attributes=[attribute])
+
+    def press_connect_translate_attributes(self):
+        self._connect_attributes("t")
+
+    def press_connect_rotation_attributes(self):
+        self._connect_attributes("r")
+
+    def press_connect_scale_attributes(self):
+        self._connect_attributes("s")
+
+    def press_connect_visibility_attributes(self):
+        self._connect_attributes("v")
+
+    def press_connect_custom_attributes(self):
+        selected_objects = pm.selected()
+        master = selected_objects[0]
+        slaves = selected_objects[1:]
+
+        keyable_attributes = master.listAttr(keyable=True, userDefined=True)
+        
+        if not keyable_attributes:
+            pm.warning(f"Master object '{master}' has no custom attributes. Connection skipped.")
+            return
+        
+        keyable_attr_names = [attr.shortName() for attr in keyable_attributes]
+        print("### KEYABLE ATTRIBUTES:", keyable_attr_names)
+        for attr in keyable_attr_names:
+            for slave in slaves:
+                if not slave.hasAttr(attr):
+                    pm.warning(f"{slave} has no attributes named {attr}. Skipped.")
+                    continue
+                maya_lib.connect_attributes(master=master, slave=slave, attributes=[attr])
+
+    def _create_surface(self, name, reference_transforms):
+        up_axis = None
+        if self.view.rdoSurfaceOrientX.isChecked():
+            up_axis = ribbon.SurfaceOrient.X_UP
+        elif self.view.rdoSurfaceOrientY.isChecked():
+            up_axis = ribbon.SurfaceOrient.Y_UP
+        elif self.view.rdoSurfaceOrientZ.isChecked():
+            up_axis = ribbon.SurfaceOrient.Z_UP
+            
+        # Create surface from transforms.
+        width = float(self.view.txtSurfaceWidth.text() or 1.0)
+        surface = ribbon.Surface(name=name)
+        surface.create(joints=reference_transforms, 
+                    width=width, 
+                    normal=up_axis)
+        return surface
+
     # Ribbon functions
     @common.undo_chunk("Create Surface")
     def press_create_surface(self):
         selected_objects = pm.selected()
-        surface = ribbon.Surface(name="surface")
-        surface.create(joints=selected_objects, width=1.0, normal=ribbon.SurfaceOrient.Y_UP)
+        
+        if not selected_objects:
+            pm.warning("No selection found. Please select joints to create the ribbon surface.")
+            return
+        
+        if len(selected_objects) ==1 and common.is_nurbs_surface(selected_objects[0]):
+            # Rebuild surface.
+            spans = int(self.view.txtSurfaceSpans.text() or 1)
+            
+            name = selected_objects[0].name()
+            surface = ribbon.Surface(name)
+            surface.rebuild(spans)
+
+        else:
+            name = common.strip_number_suffix(selected_objects[0].name())
+            surface = self._create_surface(name=name, reference_transforms=selected_objects)
+        self.view.TxtRibbonName.setText(surface.name)
+
+    @common.undo_chunk("Pick Surface Name")
+    def press_pick_surface_name(self):
+        selection = pm.selected()
+        text = ""
+        if not selection:
+            pm.warning("No selection found.")
+            self.view.TxtRibbonName.setText(text)
+        else:
+            text = selection[0].name()
+        
+        self.view.TxtRibbonName.setText(text)
 
     @common.undo_chunk("Build Ribbon")
     def press_build_ribbon(self):
-        # TODO: Complete with UI inputs.
-        module_name = "ribbon"      # UI input.
-        surface = pm.selected()[0]  # UI input.
-        section_joints = 2          # UI input.
-        ctrl_quantity = 5           # UI input.
-        module = ribbon.Ribbon(name     = module_name, 
-                        surface         = surface, 
-                        section_joints  = section_joints, 
-                        ctrl_quantity   = ctrl_quantity)
+        selection = pm.selected()
+        
+        if not selection:
+            pm.warning("No selection found. Please select a surface.")
+            return
+        
+        module_name = self.view.TxtRibbonName.text()
+        section_joints = int(self.view.TxtRibbonJointQuantity.text())
+
+        if not module_name:
+                module_name = common.strip_number_suffix(selection[0].name())
+        
+        if len(selection) >= 2:
+            surface_name = f"{module_name}_surface"
+            surface = self._create_surface(name= surface_name, reference_transforms=selection)
+            
+        elif len(selection) ==1 and common.is_nurbs_surface(selection[0]):
+            surface = ribbon.Surface(name=selection[0].name())
+
+        else:
+            pm.warning("No NURBS surface found in selection. Please select a surface.")
+            return        
+
+        ctrl_quantity  = surface.spans + 1 if surface.spans else 2
+        module = ribbon.Ribbon(name= module_name, 
+                               surface         = surface.transform, 
+                               section_joints  = section_joints, 
+                               ctrl_quantity   = ctrl_quantity)
         module.build()
 
 class SurgeryController:
@@ -598,7 +861,6 @@ class SurgeryController:
         self.bind_view()
 
     def bind_view(self):
-        
         connections = {
             "BtnConstraintDrivers": self.press_constraint_drivers,
             "BtnConstraintNodes":   self.press_constraint_nodes,

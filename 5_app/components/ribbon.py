@@ -78,8 +78,9 @@ class Surface:
             pm.nt.Transform: The created nurbs surface transform.
         """
         if self.transform:
-            return self.transform
-        
+            self.name = common.generate_unique_name(self.transform.name())
+            self.cast()
+
         proxy_curves = []
         for joint in joints:
             proxy_curve = self._create_proxy_curve(width, normal)
@@ -241,8 +242,7 @@ class Ribbon(framework.RigModule):
         
         for driver in drivers:
             name = f"{driver.name()[:-4]}_ctrl"
-            control = control_lib.Circle(control_name=name)
-            control.create(normal=[1, 0, 0])
+            control = control_lib.create_control(control_name=name, control_type=control_lib.Shapes.CIRCLE, normal=[1,0,0])            
             control.align_to(parent=driver)
             control.create_offset(suffix="_root")
 

@@ -11,7 +11,7 @@ email: francisco.guzmanga@gmail.com
 from enum import Enum
 import pymel.core as pm
 import utility.common as common
-
+import utility.mesh_lib as mesh_lib
 
 class Vector(Enum):
     X_POS = (1, 0, 0)
@@ -351,7 +351,9 @@ def negate_transform_matrix(transform_node: pm.nt.Transform):
     decompose_matrix_node.outputRotate >> transform_node.getParent().rotate
     decompose_matrix_node.outputScale >> transform_node.getParent().scale
 
-# Transform getter functions
+####################################################################################################################################
+#  TRANSFORM GETTER FUNCTIONS ######################################################################################################
+####################################################################################################################################
 def get_side_of_transform(transform_node: pm.nt.Transform, axis="x") -> int:
     """Get the side of the transform node along the specified axis.
     Returns:
@@ -381,7 +383,9 @@ def get_closest_transform(reference_transform: pm.nt.Transform, transform_list: 
             min_distance = distance
     return closest_transform
 
-# Offset functions
+####################################################################################################################################
+#  OFFSET FUNCTIONS ################################################################################################################
+####################################################################################################################################
 def create_offset(transform_node: pm.nt.Transform, offset_name_suffix="_offset") -> pm.nt.Transform:
     """Create an offset group for the given transform node to zero out transformations."""
     name = f"{transform_node.name()}{offset_name_suffix}"
@@ -404,8 +408,9 @@ def center_offset(transform_node: pm.nt.Transform):
     offset_transform.setMatrix(original_matrix, worldSpace=True)
     transform_node.setMatrix(original_matrix, worldSpace=True)
 
-
-# Pivot functions
+####################################################################################################################################
+#  PIVOT FUNCTIONS #################################################################################################################
+####################################################################################################################################
 def bake_pivot(transform_node: pm.nt.Transform):
     selection = pm.selected()
     pm.select(transform_node)
@@ -422,8 +427,9 @@ def get_center_pivot(transform_node: pm.nt.Transform) -> pm.datatypes.Vector:
     center_point = bbox.center()
     return center_point
 
-
-# Visibility funcions
+####################################################################################################################################
+#  VISIBILITY FUNCTIONS ############################################################################################################
+####################################################################################################################################
 def show_axis(transform_node: pm.nt.Transform):
     """ Display the local axis in the viewport. """
     transform_node.displayLocalAxis.set(1)
@@ -487,7 +493,9 @@ def decrease_joint_radius(joint_node: pm.nt.Joint, decrement=1):
         new_radius = max(0, current_radius - decrement)  # Prevent negative radius
         joint_node.radius.set(new_radius)  
 
-# Hierarchy Functions
+####################################################################################################################################
+#  HIERARCHY FUNCTIONS #############################################################################################################
+####################################################################################################################################
 def build_hierarchy_from_list(transform_list: list[pm.nt.Transform]) -> pm.nt.Transform:
     """Build a parent-child hierarchy following the list order."""
     for i in range(1, len(transform_list)):
@@ -538,7 +546,10 @@ def sort_by_hierarchy(transform_list: list[pm.nt.Transform]) -> list[pm.nt.Trans
         return list(updated_list)
     return []
 
-# Display Functions
+
+####################################################################################################################################
+#  DISPLAY FUNCTIONS ###############################################################################################################
+####################################################################################################################################
 def set_display_normal(transform_node: pm.nt.Transform):
     """Set the display of the given transform node to normal."""
     transform_node.overrideEnabled.set(0)  # Disable override to show normal display    
@@ -553,8 +564,9 @@ def set_display_reference(transform_node: pm.nt.Transform):
     transform_node.overrideEnabled.set(1)
     transform_node.overrideDisplayType.set(2)  # 2 for reference mode   
 
-
-# Locking Functions
+####################################################################################################################################
+#  LOCKING FUNCTIONS ###############################################################################################################
+####################################################################################################################################
 def lock_node(node: pm.PyNode):
     node.setLocked(True)
 
@@ -664,7 +676,7 @@ def create_reverse(input: pm.Attribute, *outputs: pm.Attribute, name="reverse") 
         connect_or_assign_value(reverse.outputX, output)
     return reverse
 
-def create_blend_matrix(master:pm.nt.Transform, ws=True, *weights: pm.nt.Transform, name="blendMatrix") -> pm.nt.BlendMatrix:
+def create_blend_matrix(master:pm.nt.Transform,  weights: list[pm.nt.Transform], name="blendMatrix", ws=True) -> pm.nt.BlendMatrix:
     """Code simplification of the use of blendMatrix node in Node Editor to work more visually in text editor."""
     name = name if name else master.name() + "_blendMatrix"
     blend_matrix = pm.nt.BlendMatrix(n=name)
@@ -723,23 +735,32 @@ def create_closest_point_on_surface(name: str, surface_transform: pm.nt.Transfor
 
     return closest_node
 
-def create_rivet(name: str, surface: pm.nt.Transform, position_object: pm.nt.Transform) -> pm.nt.Transform:
+def create_rivet(name: str, surface: pm.nt.Transform, position_object: pm.nt.Transform, is_orbital=False) -> pm.nt.Transform:
+        surface_shape = mesh_lib.get_render_shape(surface)
         follicle = create_follicle(name)
 
         decompose = create_decompose_matrix(position_object.worldMatrix)
 
         if common.is_mesh(surface):
             closest_node = create_closest_point_on_mesh(f"{name}_closestPointOnMesh", surface, position_object)
-            surface.getShape().worldMesh >> follicle.getShape().inputMesh
+            surface_shape.worldMesh >> follicle.getShape().inputMesh
         if common.is_nurbs_surface(surface):
             closest_node = create_closest_point_on_surface(f"{name}_closestPointOnSurface", surface, position_object)
-            surface.getShape().worldSpace >> follicle.getShape().inputSurface
+            surface_shape.worldSpace >> follicle.getShape().inputSurface
 
         decompose.outputTranslate >> closest_node.inPosition
-        follicle.parameterU.set(closest_node.parameterU.get())
-        follicle.parameterV.set(closest_node.parameterV.get())
-
-        pm.delete(closest_node, decompose)
+        if is_orbital:
+            closest_node.parameterU >> follicle.parameterU
+            closest_node.parameterV >> follicle.parameterV
+            
+        else:
+            follicle.parameterU.set(closest_node.parameterU.get())
+            follicle.parameterV.set(closest_node.parameterV.get())
+            pm.delete(closest_node, decompose)
+        
+        if not common.is_nurbs_surface(surface):
+            surface_shape.worldMatrix >> follicle.inputWorldMatrix
+            
         return follicle
 
 

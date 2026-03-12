@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="controls">
+    <file>tab_closed_icon.png</file>
+    <file>tab_open_icon.png</file>
     <file>text_icon.png</file>
     <file>semi_circle_icon.png</file>
     <file>arrow_icon.png</file>

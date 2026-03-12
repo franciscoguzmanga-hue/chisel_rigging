@@ -36,7 +36,7 @@ import core.control_framework as control_lib
 import utility.maya_lib as maya_lib
 
 class SquashStretch(framework.RigModule):
-    def __init__(self, name, *components):
+    def __init__(self, name, components):
         super().__init__(name)
         self.components = components
 
@@ -55,7 +55,7 @@ class SquashStretch(framework.RigModule):
         point_A.t >> distance_node.point1
         point_B.t >> distance_node.point2
 
-        stretch_ratio = maya_lib.create_multiplyDivide_node(distance_node.distance.get(), 
+        stretch_ratio = maya_lib.create_multiply_divide_node(distance_node.distance.get(), 
                                                    "/", 
                                                    distance_node.distance,
                                                    name= f"{self.name}_stretch_ratio")
@@ -113,21 +113,22 @@ class SquashStretch(framework.RigModule):
         self.register_sub_system(clusters_grp, visible=False)
         return clusters
 
-    def create_controls(self, clusters: list[pm.nt.Cluster]) -> list[control_lib.Sphere]:
+    def create_controls(self, clusters: list[pm.nt.Cluster]) -> list[control_lib.Control]:
         """Creation of controls to drive clusters.
 
         Args:
-            clusters (list[pm.nt.Cluster]): List of cluster nodes to create controls for.
+            clusters: List of cluster nodes to create controls for.
 
         Returns:
-            list[control_lib.Sphere]: List of control objects created to drive the clusters.
+            List of control objects created to drive the clusters.
         """
         controls = []
         for cluster in clusters:
             raw_name = cluster.name().replace("_cls", "") 
             name = f"{raw_name}_ctrl"
-            control = control_lib.Sphere(name)
-            control.create()
+            control = control_lib.create_control(control_name=name, 
+                                                 control_type=control_lib.Shapes.SPHERE,
+                                                 normal=[0, 1, 0])
             control.align_to(cluster)            
             
             pm.parentConstraint(control.transform, cluster.getParent(), mo=True)
@@ -147,8 +148,10 @@ class SquashStretch(framework.RigModule):
         Returns:
             pm.nt.Transform: The main control transform node.
         """
-        main_control = control_lib.Circle(f"{self.name}_main_ctrl")
-        main_control.create(normal=[0, 1, 0])
+        name = f"{self.name}_main_ctrl"
+        main_control = control_lib.create_control(control_name=name, 
+                                                  control_type=control_lib.Shapes.CIRCLE, 
+                                                  normal=[0, 1, 0])
         main_control.align_to(reference_position)
         main_control.create_offset("_root")
         main_control.shape_scale([2,2,2])

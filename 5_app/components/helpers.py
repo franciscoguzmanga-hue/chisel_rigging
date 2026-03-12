@@ -182,34 +182,9 @@ def aim_to(master_locator: pm.nt.Transform, slave_locator: pm.nt.Transform) -> p
     return aim_constraint
 
 
-
-
-
-
-
-
-
-
-
-############################################################################################################
-'''
-Content: Rigging module to build a zipper.
-Dependency: List dependencies or requirements
-Maya Version tested: 2024
-
-Author: Francisco Guzmán
-Email: francisco.guzmanga@gmail.com
-How to:
-    - Use: Instructions to use the module
-    - Test: Instructions to test the module
-
+"""
 TODO: Refactor code.
-'''
-
-
-import pymel.core as pm
-
-
+"""
 class Sticky:
     def __init__(self, start, end, name):
         self.name = name

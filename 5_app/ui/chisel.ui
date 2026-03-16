@@ -2075,12 +2075,18 @@ the oposite side of X axis.</string>
                  </widget>
                 </item>
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_47" stretch="1,1,1">
+                 <layout class="QHBoxLayout" name="horizontalLayout_47" stretch="2,1,2">
                   <property name="spacing">
                    <number>0</number>
                   </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
                   <item>
-                   <widget class="QPushButton" name="BtnShapeResizeMinus">
+                   <widget class="QPushButton" name="BtnShapeResizePlus">
                     <property name="minimumSize">
                      <size>
                       <width>0</width>
@@ -2088,7 +2094,10 @@ the oposite side of X axis.</string>
                      </size>
                     </property>
                     <property name="text">
-                     <string>-</string>
+                     <string>+</string>
+                    </property>
+                    <property name="class" stdset="0">
+                     <string>control-group-left</string>
                     </property>
                    </widget>
                   </item>
@@ -2124,7 +2133,7 @@ the oposite side of X axis.</string>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="BtnShapeResizePlus">
+                   <widget class="QPushButton" name="BtnShapeResizeMinus">
                     <property name="minimumSize">
                      <size>
                       <width>0</width>
@@ -2132,7 +2141,7 @@ the oposite side of X axis.</string>
                      </size>
                     </property>
                     <property name="text">
-                     <string>+</string>
+                     <string>-</string>
                     </property>
                     <property name="class" stdset="0">
                      <string>control-group-right</string>
@@ -2758,8 +2767,8 @@ the oposite side of X axis.</string>
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-14</y>
-              <width>247</width>
+              <y>0</y>
+              <width>268</width>
               <height>269</height>
              </rect>
             </property>
@@ -3491,7 +3500,7 @@ Create a Squash &amp; Stretch system.</string>
               <x>0</x>
               <y>0</y>
               <width>268</width>
-              <height>293</height>
+              <height>299</height>
              </rect>
             </property>
             <property name="minimumSize">
@@ -4562,7 +4571,7 @@ Rebuild</string>
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>268</width>
+              <width>206</width>
               <height>265</height>
              </rect>
             </property>
@@ -5457,8 +5466,6 @@ Rebuild</string>
   <tabstop>BtnShapeOperarionCombine</tabstop>
   <tabstop>BtnShapeOperationReplace</tabstop>
   <tabstop>BtnShapeOperationSwap</tabstop>
-  <tabstop>BtnShapeResizePlus</tabstop>
-  <tabstop>BtnShapeResizeMinus</tabstop>
   <tabstop>TxtShapeResizeFactor</tabstop>
   <tabstop>BtnShapeThick</tabstop>
   <tabstop>BtnShapeThin</tabstop>

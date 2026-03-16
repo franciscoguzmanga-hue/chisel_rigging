@@ -27,6 +27,7 @@ import utility.maya_lib as maya_lib
 
 TEMPLATE_SUFFIX = "_template"
 ATTR_ID= "original"
+GROUP_TEMPLATE_NAME = "template_group"
 
 # Template creation functions
 def create_template_group() -> pm.nt.Transform:
@@ -35,11 +36,10 @@ def create_template_group() -> pm.nt.Transform:
     Returns:
         pm.nt.Transform: The template group transform node.
     """
-    group_name = "template_group"
-    if pm.objExists(group_name):
-        return pm.nt.Transform(group_name)
+    if pm.objExists(GROUP_TEMPLATE_NAME):
+        return pm.nt.Transform(GROUP_TEMPLATE_NAME)
     
-    return pm.group(n=group_name, em=True)
+    return pm.group(n=GROUP_TEMPLATE_NAME, em=True)
 
 def create_template_locator(name: str) -> pm.nt.Transform:
     """Create locator with a sphere-like curves to have as reference when placing joints or any other rig teamplate or mesh.
@@ -54,7 +54,7 @@ def create_template_locator(name: str) -> pm.nt.Transform:
     locator = pm.spaceLocator(name= name)
     locator.getShape().localScale.set(.2, .2, .2)
 
-    sphere = control_lib.Sphere("temp_name")
+    sphere = control_lib.create_control(control_type=control_lib.Shapes.SPHERE, control_name="temp_name")
     sphere.create()
     pm.parent(sphere.shapes, locator, s=True, r=True)
     [shape.rename(f"{name}Shape") for shape in sphere.shapes]
@@ -79,7 +79,7 @@ def create_templates(selection: list[pm.nt.Transform]) -> list[pm.nt.Transform]:
         if not locator.hasAttr(ATTR_ID):
             pm.addAttr(locator, ln=ATTR_ID, dt="string", keyable=True)
 
-        locator.attr(ATTR_ID).set(obj.name(long=True))
+        locator.attr(ATTR_ID).set(obj.name(long=False))
         move_locator_to_object([locator])
         #pm.delete(pm.parentConstraint(obj, locator))
 
@@ -99,11 +99,32 @@ def get_original_transform(locator: pm.nt.Transform) -> pm.nt.Transform:
         pm.nt.Transform: The original transform node associated with the locator.
     """
     if not locator.hasAttr(ATTR_ID): return None
-
+    
     object_name = locator.attr(ATTR_ID).get()
     if not pm.objExists(object_name): return None
 
     return pm.nt.Transform(object_name)
+
+def get_template_from_main_group() -> list[pm.nt.Transform]:
+    if not pm.objExists(GROUP_TEMPLATE_NAME):
+        pm.warning("No template group found.")
+        return []
+    template_group = pm.ls(GROUP_TEMPLATE_NAME)[0]
+    template_locators = template_group.getChildren(type="transform", ad=True)
+    template_locators = list(filter(lambda obj: obj.hasAttr(ATTR_ID), template_locators))
+    return template_locators
+
+def filter_template_locators(selection: list[pm.nt.Transform]) -> list[pm.nt.Transform]:
+    if not selection:
+        return get_template_from_main_group()
+    
+    if len(selection) == 1 and selection[0].name() == GROUP_TEMPLATE_NAME:
+        return get_template_from_main_group()
+    
+    template_locators = filter(lambda obj: obj.hasAttr(ATTR_ID), selection)
+    get_long_name = lambda x: pm.PyNode(x.attr(ATTR_ID).get()).longName()
+    template_locators = sorted(template_locators, key=get_long_name)
+    return list(template_locators)
 
 def move_object_to_locator(locators: list[pm.nt.Transform]) -> list[pm.nt.Transform]:
     """Move original objects to the location of the given locators.
@@ -115,12 +136,14 @@ def move_object_to_locator(locators: list[pm.nt.Transform]) -> list[pm.nt.Transf
         list[pm.nt.Transform]: List of original transform nodes moved to the locators' positions.
     """
     original_objects = []
-    locators = sorted(locators, key=lambda loc: loc.attr(ATTR_ID).get())
+    locators = sorted(locators, key=lambda loc: pm.PyNode(loc.attr(ATTR_ID).get()).name(long=True))
     for template in locators:
         original_object = get_original_transform(template)
         if not original_object: continue
         
-        maya_lib.align_transform(template, original_object)
+        matrix = template.getMatrix(ws=True)
+        original_object.setMatrix(matrix, ws=True)
+
         original_objects.append(original_object)
 
     return original_objects
@@ -138,6 +161,9 @@ def move_locator_to_object(locators: list[pm.nt.Transform]) -> list[pm.nt.Transf
     for locator in locators:
         original_object = get_original_transform(locator)
         if not original_object: continue
+
+        matrix = original_object.getMatrix(ws=True)
+        original_object.setMatrix(matrix, ws=True)
 
         maya_lib.align_transform(original_object, locator)
         original_objects.append(original_object)
@@ -178,6 +204,7 @@ def aim_to(master_locator: pm.nt.Transform, slave_locator: pm.nt.Transform) -> p
                                                aim_vector=maya_lib.Vector.X_POS, 
                                                up_vector=maya_lib.Vector.Z_POS, 
                                                world_up_type=maya_lib.WorldUpType.OBJECT_ROTATE_AXIS, 
+                                               worldUpVector=maya_lib.Vector.Z_POS,
                                                worldUpObject=master_locator)
     return aim_constraint
 
@@ -276,7 +303,7 @@ class Zipper:
             clamp_node.outputR >> sticky_attr
 
         else:
-            print(f"ASDF: {sticky_attr.inputs(plugs=True)} >> {sticky_attr}")
+            
             equalize_mult = pm.nt.Sum(n=f"{name}_equalize")
             equalize_mult.output >> sticky_attr
 

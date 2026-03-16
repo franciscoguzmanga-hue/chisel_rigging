@@ -242,13 +242,13 @@ class ControlsController:
             "normal": self._get_control_normal(),
         }
 
-        print("### INSTANCE OF TEXT:", creation_shape is ctrl_lib.Shapes.TEXT)
         if creation_shape is ctrl_lib.Shapes.TEXT:
             text = self.view.TxtControlTextContent.text()
             creation_parameters["text"] = text
 
-        selection = pm.selected()
-        selection = maya_lib.sort_by_hierarchy(selection) or [creation_shape.value]
+        selection = pm.selected() or ["_"]
+        if not "_" in selection:
+            selection = maya_lib.sort_by_hierarchy(selection) or [creation_shape.value]
         
         controls = {}
         for index, obj in enumerate(selection):
@@ -491,7 +491,6 @@ class EditController:
             name = f"{obj.name()}_{suffix}"
             created_node = create_func(name)
             if common.is_transform(obj):
-                print("### OBJ:", type(obj), "### CREATED NODE:", type(created_node))
                 maya_lib.align_transform(obj, created_node)
             elif all_components:
                 name = f"{obj.node().name()}_{suffix}"
@@ -579,18 +578,23 @@ class ComponentController:
 
     @common.undo_chunk("Move Objects to Templates")
     def press_move_objects_to_templates(self):
-        selected_objects = pm.selected()
+        selected_objects = helpers.filter_template_locators(pm.selected())
         helpers.move_object_to_locator(selected_objects)
 
     @common.undo_chunk("Move Templates to Objects")
     def press_move_templates_to_objects(self):
-        selected_objects = pm.selected()
+        selected_objects = helpers.filter_template_locators(pm.selected())
         helpers.move_locator_to_object(selected_objects)
     
     @common.undo_chunk("Constraint Templates to Midpoint")
     def press_constraint_templates_to_midpoint(self):
-        template_A, template_B, template_mid = pm.selected()
-        helpers.constraint_to_midpoint(template_A, template_B, template_mid)
+        selection = pm.selected()
+        if len(selection) != 3: 
+            pm.warning("Selection must contain 3 objects.")
+            return
+        
+        template_A, template_B, template_mid = selection
+        helpers.constraint_to_midpoint(locator_A=template_A, locator_B=template_B, locator_mid=template_mid)
 
     @common.undo_chunk("Orient Templates to Template")
     def press_orient_templates_to_template(self):
@@ -764,7 +768,6 @@ class ComponentController:
             return
         
         keyable_attr_names = [attr.shortName() for attr in keyable_attributes]
-        print("### KEYABLE ATTRIBUTES:", keyable_attr_names)
         for attr in keyable_attr_names:
             for slave in slaves:
                 if not slave.hasAttr(attr):

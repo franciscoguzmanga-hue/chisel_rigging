@@ -80,9 +80,10 @@ def lock_and_hide_attribute(attribute: pm.Attribute):
     Args:
         attribute: The attribute to lock and hide.
     """
-    attribute.set(lock=True)
-    attribute.setKeyable(False)
-    attribute.showInChannelBox(False)
+    pm.setAttr(attribute, e=True, lock=True, keyable=False, channelBox=False)
+    #attribute.set(lock=True)
+    #attribute.setKeyable(False)
+    #attribute.showInChannelBox(False)
 
 def unlock_attribute(attribute: pm.Attribute):
     """Unlock and set it visible in the channel box.
@@ -221,7 +222,8 @@ def aim_constraint_many_to_one(master: pm.nt.Transform, *slaves: pm.nt.Transform
                               aim_vector=Vector.X_POS, 
                               up_vector= Vector.Y_POS, 
                               world_up_type= WorldUpType.SCENE,
-                              worldUpObject: pm.nt.Transform = None) -> list[pm.nt.AimConstraint]:
+                              worldUpObject: pm.nt.Transform = None,
+                              worldUpVector= Vector.Z_POS) -> list[pm.nt.AimConstraint]:
     constraints = []
     for slave in slaves:
         constraint = pm.aimConstraint(master, slave, 
@@ -229,7 +231,8 @@ def aim_constraint_many_to_one(master: pm.nt.Transform, *slaves: pm.nt.Transform
                                       aimVector  =aim_vector.value      if isinstance(aim_vector, Vector)         else aim_vector, 
                                       upVector   =up_vector.value       if isinstance(up_vector,  Vector)         else up_vector,
                                       worldUpType=world_up_type.value   if isinstance(world_up_type, WorldUpType) else world_up_type,
-                                      worldUpObject=worldUpObject if worldUpObject else None)
+                                      worldUpObject=worldUpObject if worldUpObject else None,
+                                      worldUpVector=worldUpVector.value if isinstance(worldUpVector, Vector) else worldUpVector)
         constraints.append(constraint)
     return constraints
 

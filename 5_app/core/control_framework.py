@@ -375,7 +375,7 @@ class Slider(Control):
         circle.name = f"{self._name}_slider"
         circle.shape_normal(normal)
         circle.shape_scale([.2, .2, .2])
-        circle.lock_channels("tx", "tz", "r", "s", "v")
+        circle.lock_channels("tx", "tz", "rx", "ry", "rz", "sx", "sy", "sz", "v")
         circle.shape_color_index(ColorIndex.YELLOW)
         
         pm.transformLimits(circle.transform, ety=(True, True), ty=(self.limits[0], self.limits[1]))
@@ -404,16 +404,16 @@ class Osipa(Control):
         Control.name.fset(self, value)
 
     def create(self, normal=[1,0,0]) -> 'Control':
-        frame  = Square(f"{self._name}_frame").create()
+        frame  = create_control(Shapes.SQUARE, f"{self._name}_frame")
         frame.shape_normal(normal)
         frame.shapes[0].overrideEnabled.set(1)
         frame.shapes[0].overrideDisplayType.set(2)
         
-        slider = Square(f"{self._name}_slider").create()
+        slider = create_control(Shapes.SQUARE, f"{self._name}_slider")
         slider.shape_normal(normal)
         slider.shape_scale([.3,.3,.3])
         slider.shape_orient([45, 0, 0])
-        slider.lock_channels("tx", "r", "s", "v")
+        slider.lock_channels("tx", "rx", "ry", "rz", "sx", "sy", "sz", "v")
 
         pm.transformLimits(slider.transform, tx=(0, 0), etx=(True, True))
         pm.transformLimits(slider.transform, ty=(-1, 1), ety=(True, True))

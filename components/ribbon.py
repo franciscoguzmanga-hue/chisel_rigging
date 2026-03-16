@@ -21,10 +21,10 @@ How to:
 
 import pymel.core as pm
 
-import core.framework as framework
-import core.control_framework as control_lib
-import utility.common as common
-import utility.maya_lib as maya_lib
+import chisel_rigging.framework.framework as framework
+import chisel_rigging.framework.control_framework as control_lib
+import chisel_rigging.utility.common as common
+import chisel_rigging.utility.maya_lib as maya_lib
 
 
 class SurfaceOrient:

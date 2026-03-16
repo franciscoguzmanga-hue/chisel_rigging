@@ -4,10 +4,10 @@ Author: Francisco Guzmán
 
 Content: Class to manage creation of Squash and Stretch module.
 Dependency: pymel.core, 
-            src.core.module_core, 
-            src.core.control_lib, 
-            src.utility.maya_nodes_utils, 
-            src.utility.transform_utils
+            chisel_rigging.framework.framework, 
+            chisel_rigging.framework.control_framework, 
+            chisel_rigging.utility.maya_nodes_utils, 
+            chisel_rigging.utility.transform_utils
 Maya Version tested: 2024
 
 How to:
@@ -31,9 +31,9 @@ How to:
 
 import pymel.core as pm
 
-import core.framework as framework
-import core.control_framework as control_lib
-import utility.maya_lib as maya_lib
+import chisel_rigging.framework.framework as framework
+import chisel_rigging.framework.control_framework as control_lib
+import chisel_rigging.utility.maya_lib as maya_lib
 
 class SquashStretch(framework.RigModule):
     def __init__(self, name, components):

@@ -21,8 +21,8 @@ How to:
 '''
 
 import pymel.core as pm
-import core.control_framework as control_lib
-import utility.maya_lib as maya_lib
+import chisel_rigging.framework.control_framework as control_lib
+import chisel_rigging.utility.maya_lib as maya_lib
 
 
 TEMPLATE_SUFFIX = "_template"

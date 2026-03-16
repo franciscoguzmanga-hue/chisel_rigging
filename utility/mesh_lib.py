@@ -8,8 +8,8 @@ Email: francisco.guzmanga@gmail.com
 '''
 
 import pymel.core as pm
-import utility.common as common
-import utility.mesh_lib as mesh_lib
+import chisel_rigging.utility.common as common
+import chisel_rigging.utility.mesh_lib as mesh_lib
 
 ####################################################################################################################################
 # Mesh Interaction Functions #######################################################################################################

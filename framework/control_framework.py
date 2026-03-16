@@ -45,8 +45,8 @@ import os
 
 import pymel.core as pm
 
-import utility.maya_lib as maya_lib
-import utility.common as common
+import chisel_rigging.utility.maya_lib as maya_lib
+import chisel_rigging.utility.common as common
 
 
 JSON_PATH = os.path.join(os.path.dirname(__file__), "shape_points.json")

@@ -16,7 +16,7 @@ How to:
 
 from enum import Enum
 import pymel.core as pm
-import utility.maya_lib as maya_lib
+import chisel_rigging.utility.maya_lib as maya_lib
 
 
 class DisplayType(Enum):

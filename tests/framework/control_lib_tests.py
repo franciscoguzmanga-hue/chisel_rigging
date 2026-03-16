@@ -1,13 +1,13 @@
 
 import importlib
 
-importlib.reload(importlib.import_module("core.controls"))
+importlib.reload(importlib.import_module("framework.controls"))
 importlib.reload(importlib.import_module("utility.common"))
 importlib.reload(importlib.import_module("utility.maya_lib"))
 importlib.reload(importlib.import_module("utility.mesh_lib"))
 
 import pymel.core as pm
-from core.controls import *
+from framework.controls import *
 
 
 locator = pm.spaceLocator(n="my_locator")

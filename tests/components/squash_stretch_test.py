@@ -21,7 +21,7 @@ import pymel.core as pm
 importlib.reload(importlib.import_module("src.utility.transform_utils"))
 importlib.reload(importlib.import_module("src.utility.attribute_utils"))
 importlib.reload(importlib.import_module("src.utility.maya_nodes_utils"))
-importlib.reload(importlib.import_module("src.core.control_lib"))
+importlib.reload(importlib.import_module("src.framework.control_lib"))
 importlib.reload(importlib.import_module("src.utility.maya_nodes_utils"))
 importlib.reload(importlib.import_module("src.rigging_modules.squash_stretch"))
 

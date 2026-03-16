@@ -14,9 +14,9 @@ How to:
 
 
 import pymel.core as pm
-import utility.mesh_lib as mesh_lib
-import utility.maya_lib as maya_lib
-import utility.common as common
+import chisel_rigging.utility.mesh_lib as mesh_lib
+import chisel_rigging.utility.maya_lib as maya_lib
+import chisel_rigging.utility.common as common
 
 
 def get_inputs_from_attribute(node: pm.PyNode) -> list[pm.PyNode]:

@@ -8,14 +8,14 @@ import maya.OpenMayaUI as omui
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 from shiboken2 import wrapInstance
 
-import components.helpers as helpers
-import components.ribbon as ribbon
-import components.squash_stretch as ss
-import core.control_framework as ctrl_lib
-import utility.common as common
-import utility.maya_lib as maya_lib
-import utility.mesh_lib as mesh_lib
-from ui.Qt import QtWidgets, QtGui, QtCore, QtCompat
+import chisel_rigging.components.helpers as helpers
+import chisel_rigging.components.ribbon as ribbon
+import chisel_rigging.components.squash_stretch as ss
+import chisel_rigging.framework.control_framework as ctrl_lib
+import chisel_rigging.utility.common as common
+import chisel_rigging.utility.maya_lib as maya_lib
+import chisel_rigging.utility.mesh_lib as mesh_lib
+from chisel_rigging.ui.Qt import QtWidgets, QtGui, QtCore, QtCompat
 
 
 FILE_NAME   = os.path.basename(__file__).replace(".py", "")

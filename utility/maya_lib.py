@@ -10,8 +10,8 @@ email: francisco.guzmanga@gmail.com
 
 from enum import Enum
 import pymel.core as pm
-import utility.common as common
-import utility.mesh_lib as mesh_lib
+import chisel_rigging.utility.common as common
+import chisel_rigging.utility.mesh_lib as mesh_lib
 
 class Vector(Enum):
     X_POS = (1, 0, 0)

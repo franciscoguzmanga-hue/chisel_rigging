@@ -549,6 +549,28 @@ def sort_by_hierarchy(transform_list: list[pm.nt.Transform]) -> list[pm.nt.Trans
         return list(updated_list)
     return []
 
+def subdivide_joint_hierarchy(start_joint:pm.nt.Transform, end_joint:pm.nt.Transform, quantity=1, name_suffix="_subdiv") -> list[pm.nt.Transform]:
+    """Create joints between start_joint and end_joint.
+    TODO: Optimize using matrixes instead of constraints."""
+    factor = 1.0/(quantity+1)
+    delta = factor
+    parent = start_joint
+    joints = []
+    base_name = start_joint.name()
+    for index in range(quantity):
+        joint = pm.joint(parent, n=f"{base_name}_{str(index+1).zfill(3)}_{name_suffix}")
+        constraint = pm.parentConstraint(start_joint, end_joint, joint)
+        constraint.w0.set(1-delta)
+        constraint.w1.set(delta)
+        delta += factor
+        pm.delete(constraint)
+        pm.makeIdentity(joint, a=True)
+        pm.parent(joint, parent)
+        parent = joint
+        joints.append(joint)
+
+    pm.parent(end_joint, joints[-1])
+
 
 ####################################################################################################################################
 #  DISPLAY FUNCTIONS ###############################################################################################################

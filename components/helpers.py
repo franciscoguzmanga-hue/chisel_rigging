@@ -71,7 +71,7 @@ def create_templates(selection: list[pm.nt.Transform]) -> list[pm.nt.Transform]:
     """
     locators = []
     template_group = create_template_group()
-
+    
     for obj in selection:
         name = f"{obj.name()}{TEMPLATE_SUFFIX}"
         locator = create_template_locator(name)
@@ -81,7 +81,6 @@ def create_templates(selection: list[pm.nt.Transform]) -> list[pm.nt.Transform]:
 
         locator.attr(ATTR_ID).set(obj.name(long=False))
         move_locator_to_object([locator])
-        #pm.delete(pm.parentConstraint(obj, locator))
 
         pm.parent(locator, template_group)
         locators.append(locator)

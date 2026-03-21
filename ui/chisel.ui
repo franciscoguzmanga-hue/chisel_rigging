@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Chisel Tool Set</string>
+   <string>Chisel Toolset</string>
   </property>
   <property name="styleSheet">
    <string notr="true">QDialog, QTabWidget, QToolBox, QWidget {
@@ -718,9 +718,9 @@ Orient transforms to mesh surface.</string>
            <property name="class" stdset="0">
             <string>dark-background</string>
            </property>
-           <layout class="QHBoxLayout" name="horizontalLayout">
+           <layout class="QVBoxLayout" name="verticalLayout_27">
             <property name="spacing">
-             <number>0</number>
+             <number>6</number>
             </property>
             <property name="leftMargin">
              <number>10</number>

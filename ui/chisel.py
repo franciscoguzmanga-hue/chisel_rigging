@@ -483,24 +483,33 @@ class EditController:
             pm.delete(cluster)
         else:
             return
-        created_node.rename(f"center_{suffix}")
+        
+        name = f"center_{suffix}"
+        name = common.generate_unique_name(name)
+        created_node.rename(name)
         return created_node
 
     def _create_at_selection(self, selected_objects, create_func, suffix, all_transform=False, all_components=False):
         for obj in selected_objects:
             name = f"{obj.name()}_{suffix}"
+            name = common.generate_unique_name(name)
             created_node = create_func(name)
+            
             if common.is_transform(obj):
                 maya_lib.align_transform(obj, created_node)
-            elif all_components:
-                name = f"{obj.node().name()}_{suffix}"
+            elif common.is_component(obj):                
+                position = pm.xform(obj, q=True, t=True, ws=True)
+                pm.xform(created_node, t=position, ws=True)
+                
+                node_name = obj.node().getParent().name()
+                name = f"{node_name}_{suffix}"
+                name = common.generate_unique_name(name)
                 created_node.rename(name)
-                matrix = pm.xform(obj, q=True, matrix=True, ws=True)
-                pm.xform(created_node, matrix=matrix, ws=True)
+                
             
     @common.undo_chunk("Create at Selection")
     def press_create_at_selection(self, create_func, suffix):        
-        selected_objects = pm.selected()
+        selected_objects = pm.selected(fl=True)
         all_transform = all(common.is_transform(obj) for obj in selected_objects)
         all_components = all(common.is_component(obj) for obj in selected_objects)
         if not (all_transform or all_components):
@@ -519,6 +528,7 @@ class EditController:
             self._create_at_center(selected_objects, **creation_parameters)
         else:
             self._create_at_selection(selected_objects, **creation_parameters)
+        
         
     @common.undo_chunk("Build Hierarchy")
     def press_build_hierarchy(self):
@@ -574,7 +584,12 @@ class ComponentController:
     @common.undo_chunk("Create Templates")   
     def press_create_template(self):
         selected_objects = pm.selected()
-        helpers.create_templates(selected_objects)
+        if not selected_objects:
+            name = "template"
+            name = common.generate_unique_name(name)
+            helpers.create_template_locator(name)
+        else:
+            helpers.create_templates(selected_objects)
 
     @common.undo_chunk("Move Objects to Templates")
     def press_move_objects_to_templates(self):

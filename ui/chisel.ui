@@ -421,6 +421,116 @@ color: rgb(68, 68, 68);
           </widget>
          </item>
          <item>
+          <widget class="QFrame" name="lay_offset_creation_2">
+           <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="3,2,1">
+            <property name="spacing">
+             <number>1</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="btnZeroOut">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>60</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Creates group root and/or offset
+to zero transformations of selection.</string>
+              </property>
+              <property name="text">
+               <string>Zero Out
+Selection</string>
+              </property>
+              <property name="class" stdset="0">
+               <string>control-group-left</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QFrame" name="LayOffsetCreation">
+              <property name="frameShape">
+               <enum>QFrame::NoFrame</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Plain</enum>
+              </property>
+              <property name="lineWidth">
+               <number>0</number>
+              </property>
+              <property name="midLineWidth">
+               <number>0</number>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_16" stretch="0,0">
+               <property name="leftMargin">
+                <number>10</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>10</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QCheckBox" name="chkZeroOutRoot">
+                 <property name="text">
+                  <string>Root</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="chkZeroOutOffset">
+                 <property name="text">
+                  <string>└ Offset</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="BtnMoveOffset">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>60</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Move parent group of current selection 
+to zero out it's transformations.</string>
+              </property>
+              <property name="text">
+               <string>Move
+Offset</string>
+              </property>
+              <property name="class" stdset="0">
+               <string>control-group-right</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
           <widget class="QFrame" name="LayAlign">
            <property name="frameShape">
             <enum>QFrame::NoFrame</enum>
@@ -751,116 +861,6 @@ based on selection order.</string>
               </property>
               <property name="class" stdset="0">
                <string>control-group</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QFrame" name="lay_offset_creation_2">
-           <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="3,2,1">
-            <property name="spacing">
-             <number>1</number>
-            </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QPushButton" name="btnZeroOut">
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>60</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>Creates group root and/or offset
-to zero transformations of selection.</string>
-              </property>
-              <property name="text">
-               <string>Zero Out
-Selection</string>
-              </property>
-              <property name="class" stdset="0">
-               <string>control-group-left</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QFrame" name="LayOffsetCreation">
-              <property name="frameShape">
-               <enum>QFrame::NoFrame</enum>
-              </property>
-              <property name="frameShadow">
-               <enum>QFrame::Plain</enum>
-              </property>
-              <property name="lineWidth">
-               <number>0</number>
-              </property>
-              <property name="midLineWidth">
-               <number>0</number>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_16" stretch="0,0">
-               <property name="leftMargin">
-                <number>10</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>10</number>
-               </property>
-               <property name="bottomMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QCheckBox" name="chkZeroOutRoot">
-                 <property name="text">
-                  <string>Root</string>
-                 </property>
-                 <property name="checked">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="chkZeroOutOffset">
-                 <property name="text">
-                  <string>└ Offset</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="BtnMoveOffset">
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>60</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>Move parent group of current selection 
-to zero out it's transformations.</string>
-              </property>
-              <property name="text">
-               <string>Move
-Offset</string>
-              </property>
-              <property name="class" stdset="0">
-               <string>control-group-right</string>
               </property>
              </widget>
             </item>
@@ -2768,7 +2768,7 @@ the oposite side of X axis.</string>
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>268</width>
+              <width>205</width>
               <height>269</height>
              </rect>
             </property>
@@ -3499,8 +3499,8 @@ Create a Squash &amp; Stretch system.</string>
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>268</width>
-              <height>299</height>
+              <width>241</width>
+              <height>270</height>
              </rect>
             </property>
             <property name="minimumSize">

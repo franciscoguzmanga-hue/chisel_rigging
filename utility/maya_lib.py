@@ -167,7 +167,7 @@ class WorldUpType(Enum):
 
 
 def get_constraint_nodes(transform_node: pm.nt.Transform) -> list[pm.nt.Constraint]:
-    constraints = pm.listRelatives(transform_node, type="constraint")
+    constraints = pm.listConnections(transform_node, d=False, s=True, type=pm.nt.Constraint)
     return constraints
 
 def get_constraint_target(constraint_node: pm.nt.Constraint) -> list[pm.PyNode]:

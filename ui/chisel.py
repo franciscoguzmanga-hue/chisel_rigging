@@ -264,11 +264,12 @@ class ControlsController:
             if parent_control:
                 control_instance.parent_to(parent_control.transform)
 
-            self._control_offset(control_instance)
-            self._control_connection(control_instance, target=obj)
-
             controls[obj] = control_instance 
-        
+
+            self._control_offset(control_instance)
+            if obj != "_":
+                self._control_connection(control_instance, target=obj)
+
         transform_curves = [ctrl.transform for ctrl in controls.values()]
         pm.select(transform_curves, replace=True)
 
@@ -584,12 +585,14 @@ class ComponentController:
     @common.undo_chunk("Create Templates")   
     def press_create_template(self):
         selected_objects = pm.selected()
+        locators = []
         if not selected_objects:
             name = "template"
             name = common.generate_unique_name(name)
-            helpers.create_template_locator(name)
+            locators = helpers.create_template_locator(name)
         else:
-            helpers.create_templates(selected_objects)
+            locators = helpers.create_templates(selected_objects)
+        pm.select(locators, replace=True)
 
     @common.undo_chunk("Move Objects to Templates")
     def press_move_objects_to_templates(self):

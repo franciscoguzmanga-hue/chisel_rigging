@@ -140,8 +140,11 @@ def move_object_to_locator(locators: list[pm.nt.Transform]) -> list[pm.nt.Transf
         original_object = get_original_transform(template)
         if not original_object: continue
         
-        matrix = template.getMatrix(ws=True)
-        original_object.setMatrix(matrix, ws=True)
+        position = template.getTranslation(ws=True)
+        original_object.setTranslation(position, ws=True)
+
+        rotation = template.getRotation(ws=True)
+        original_object.setRotation(rotation, ws=True)
 
         original_objects.append(original_object)
 
